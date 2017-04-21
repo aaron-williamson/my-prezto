@@ -10,4 +10,116 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
-# Customize to your needs...
+# My customization starts here
+
+# Enable reverse and forward search
+bindkey "^R" history-incremental-pattern-search-backward
+bindkey "^F" history-incremental-pattern-search-forward
+
+# Allow various deletions after vi-mode
+bindkey "^?" backward-delete-char
+bindkey "^H" backward-delete-char
+bindkey "^W" backward-kill-word
+bindkey "^U" backward-kill-line
+
+# <C-p> and <C-n> for previous and next in command history
+bindkey "^P" up-history
+bindkey "^N" down-history
+
+# 10ms for key sequences - makes everything more responsive
+KEYTIMEOUT=1
+
+# Launch neovim/vim more easily
+if (( $+commands[nvim] )); then
+  alias vim="nvim"
+  alias vi="nvim"
+else
+  alias vi="vim"
+fi
+
+# System specific aliases
+if [[ "$OSTYPE" == darwin* ]]; then
+  alias la="ls -alhGF"
+  alias ls="ls -lhFG"
+  alias du="du -h -d 1"
+  alias psa='ps -Ao "pid ppid state %cpu %mem rss start etime command"'
+
+  # File specific aliases
+  if [[ -f "$HOME/.ssh/id_rsa.pub" ]]; then
+    alias cpypub="echo -n $(cat $HOME/.ssh/id_rsa.pub) | pbcopy"
+  fi
+
+  if [[ -f "$HOME/.iterm2_shell_integration.zsh" ]] && [[ -n "$ITERM_SESSION_ID" ]]; then
+    source "$HOME/.iterm2_shell_integration.zsh"
+  fi
+elif [[ "$OSTYPE" == linux* ]]; then
+  alias ls="ls -lhF --color=auto"
+  alias la="ls -alhF --color=auto"
+  alias du="du -h --max-depth=1"
+fi
+
+# Get back to git root directory easily
+function git_root() {
+  if git rev-parse --is-inside-work-tree 2> /dev/null; then
+    cd $(git rev-parse --show-toplevel)
+  else
+    >&2 echo "Error, not inside a git repository"
+    false
+  fi
+}
+
+# Open a md file in web browser with custom css
+function markdown_preview() {
+  if [[ -e markdown.css ]]; then
+    echo Error, file markdown.css exists. Canceling markdown preview.
+    false
+  else
+    cp ~/.dotfiles/other/markdown.css .
+    github-markdownb --stylesheet='markdown.css' $@
+    rm -f markdown.css
+  fi
+}
+
+# General aliases
+alias vimkh="vim $HOME/.ssh/known_hosts"
+alias vikh="vimkh"
+alias quit="exit"
+alias df="df -h"
+alias cdgr="git_root"
+alias mdp="markdown_preview"
+
+# Set commands back to their defaults
+alias cp='nocorrect cp'
+alias ln='nocorrect ln'
+alias mv='nocorrect mv'
+alias rm='nocorrect rm'
+
+# Automatically ls after every cd
+function chpwd() {
+  emulate -L zsh
+  ls
+}
+
+# Machine specific rc settings
+if [[ -f "$HOME/.$(hostname)" ]]; then
+  source "$HOME/.$(hostname)"
+fi
+
+# Load rbenv
+if (( $+commands[rbenv] )); then
+  eval "$(rbenv init -)"
+fi
+
+# fzf setup
+if (( $+commands[fzf] )); then
+  # Auto-completion
+  [[ $- == *i* ]] && source "${FZF_PREFIX}/completion.zsh" 2> /dev/null
+
+  # Key bindings
+  source "${FZF_PREFIX}/key-bindings.zsh"
+fi
+
+# thefuck alias
+if (( $+commands[thefuck] )); then
+  eval $(thefuck --alias)
+fi

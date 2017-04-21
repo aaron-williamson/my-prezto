@@ -1,3 +1,4 @@
+# vim: filetype=zsh
 #
 # Executes commands at login pre-zshrc.
 #
@@ -5,20 +6,29 @@
 #   Sorin Ionescu <sorin.ionescu@gmail.com>
 #
 
-#
-# Browser
-#
-
+# OS X Specifics
 if [[ "$OSTYPE" == darwin* ]]; then
   export BROWSER='open'
+  export FZF_PREFIX="/usr/local/opt/fzf/shell"
 fi
 
-#
-# Editors
-#
+# Linux specifics
+if [[ "${OSTYPE}" == linux* ]]; then
+  export FZF_PREFIX="/usr/share/fzf"
+fi
 
-export EDITOR='nano'
-export VISUAL='nano'
+# Set editor's appropriately
+if (( $+commands[nvim] )); then
+  export EDITOR='nvim'
+  export VISUAL='nvim'
+
+  # Use neovim as man pager if we have it
+  export MANPAGER="nvim -c 'set ft=man' -"
+else
+  export EDITOR='vim'
+  export VISUAL='vim'
+fi
+
 export PAGER='less'
 
 #
@@ -32,6 +42,12 @@ fi
 #
 # Paths
 #
+
+# For rustup
+export PATH=$HOME/.cargo/bin:$PATH
+
+# Always use user-defined programs before system-defined ones
+export PATH=$HOME/bin:$PATH
 
 # Ensure path arrays do not contain duplicates.
 typeset -gU cdpath fpath mailpath path
@@ -66,8 +82,9 @@ fi
 # Temporary Files
 #
 
-if [[ ! -d "$TMPDIR" ]]; then
-  export TMPDIR="$(mktemp -d)"
-fi
+TMPPREFIX="$(mktemp -d)/zsh"
 
-TMPPREFIX="${TMPDIR%/}/zsh"
+# Secrets file
+if [[ -f "$HOME/.secrets" ]]; then
+  source "$HOME/.secrets"
+fi
