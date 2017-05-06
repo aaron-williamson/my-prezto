@@ -42,15 +42,10 @@ if [[ "$OSTYPE" == darwin* ]]; then
   alias la="ls -alhGF"
   alias ls="ls -lhFG"
   alias du="du -h -d 1"
-  alias psa='ps -Ao "pid ppid state %cpu %mem rss start etime command"'
 
   # File specific aliases
   if [[ -f "$HOME/.ssh/id_rsa.pub" ]]; then
     alias cpypub="echo -n $(cat $HOME/.ssh/id_rsa.pub) | pbcopy"
-  fi
-
-  if [[ -f "$HOME/.iterm2_shell_integration.zsh" ]] && [[ -n "$ITERM_SESSION_ID" ]]; then
-    source "$HOME/.iterm2_shell_integration.zsh"
   fi
 elif [[ "$OSTYPE" == linux* ]]; then
   alias ls="ls -lhF --color=auto"
@@ -87,6 +82,7 @@ alias quit="exit"
 alias df="df -h"
 alias cdgr="git_root"
 alias mdp="markdown_preview"
+alias psa='ps -Ao "pid ppid state %cpu %mem rss start etime command"'
 
 # Set commands back to their defaults
 alias cp='nocorrect cp'
