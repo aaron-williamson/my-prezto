@@ -1,0 +1,200 @@
+# vim: ft=zsh
+# A simple theme that displays relevant, contextual information.
+# Modified from sorin prompt
+#
+
+#
+# base16 Terminal Colors
+# -- ---------------
+#  0 Black (base 00)
+#  1 Red
+#  2 Green
+#  3 Yellow
+#  4 Blue
+#  5 Magenta
+#  6 Cyan
+#  7 White (base 05)
+#  8 Base 03
+#  9 Bright orange?
+# 10 Base 01
+# 11 Base 02
+# 12 Base 04
+# 13 Base 06
+# 14 Darge orange?
+# 15 Base 07 (true white)
+#
+
+# Load dependencies.
+pmodload 'helper'
+
+function prompt_sauron_pwd {
+  # This is a function to truncate the current directory
+  # eg $HOME/Documents/some/dir becomes ~/D/s/dir
+  # Explanation:
+  #
+  # First we have '${PWD/#$HOME/~}'
+  #   This takes PWD and replaces $HOME (eg /Users/person) with ~
+  #
+  # Next we have the first branch of the if statement:
+  #   if [[ "$pwd" == (#m)[/~] ]]; then
+  #     _prompt_sauron_pwd="$MATCH"
+  #     unset MATCH
+  #   else
+  #   The two significant parts of this are '(#m)' and '[/~]', the first
+  #   is a flag that says to set the MATCH variable to the result of the
+  #   following glob. The second is just a glob that checks if pwd is either
+  #   '~' or '/'. If this is true _prompt_sauron_pwd gets set to the
+  #   value of MATCH, that is either `~` or '/'.
+  #
+  # The second branch of the if statement is a lot of parameter expansion
+  #   The first large chunk '${${${${(@j:/:M)${(@s:/:)pwd}##.#?}:h}%/}//\%/%%}'
+  #   is rather complex, I'll explain from the inside out:
+  #   - The innermost is '${(@s:/:)pwd}, this force splits pwd on '/' rather
+  #     than treating it as a single word (both @ and s:/: split, I think @
+  #     is redundant here, but it makes sure to split array elements so maybe
+  #     that does something)
+  #   - Next is '${(@j:/:M)${(@s:/:)pwd}##.#?}', @ ensures array elements are
+  #     separate words, j:/: joins words using the character '/', the M flag
+  #     inverts the following match, which is: ##. matches a . at the start
+  #     of each argument (this is for hidden directories .dotfiles for ex),
+  #     and since we use ##, it prefers the longest match, which is then
+  #     followed by #?, to match any one character, this makes it so we match
+  #     the first character of any string, and the first two of any string
+  #     that starts with '.'. The other part of # is that it removes whatever
+  #     it matches, but M reverses that so we delete everything that isn't
+  #     matched. This is the primary magic of this function.
+  #   - The last two groups here are ${:h} and ${%/}. 'h' just removes the
+  #     file name from the end, acting like 'dirname', and '%/' matches and
+  #     removes the '/' character from the end of the string if it exists
+  #   - All of this together results in something like: ~/D/s (if given the
+  #     pwd of ~/Documents/some/dir)
+  #   Last towards the end of the string we have '/${${pwd:t}//\%/%%}', this just
+  #   appends / and the last dir to the previous string:
+  #     / is just a character /
+  #     ${pwd:t} is the tail of ${pwd}, so so in the above example
+  #       it gets just 'dir' from '$HOME/Documents/some/dir'
+  #   At the end of both of these statements we have //\%/%%, all this does
+  #   is escape any '%'s inside the string, replacing them with %%'s so that
+  #   the prompt renders them properly, since % is a valid filename char.
+  local pwd="${PWD/#$HOME/~}"
+
+  if [[ "$pwd" == (#m)[/~] ]]; then
+    _prompt_sauron_pwd="$MATCH"
+    unset MATCH
+  else
+    _prompt_sauron_pwd="${${${${(@j:/:M)${(@s:/:)pwd}##.#?}:h}%/}//\%/%%}/${${pwd:t}//\%/%%}"
+  fi
+}
+
+function prompt_sauron_git_info {
+  if (( _prompt_sauron_precmd_async_pid > 0 )); then
+    # Append Git status.
+    if [[ -s "$_prompt_sauron_precmd_async_data" ]]; then
+      alias typeset='typeset -g'
+      source "$_prompt_sauron_precmd_async_data"
+      RPROMPT+='${git_info:+${(e)git_info[status]}}'
+      unalias typeset
+    fi
+
+    # Reset PID.
+    _prompt_sauron_precmd_async_pid=0
+
+    # Redisplay prompt.
+    zle && zle reset-prompt
+  fi
+}
+
+function prompt_sauron_precmd_async {
+  # Get Git repository information.
+  if (( $+functions[git-info] )); then
+    git-info
+    typeset -p git_info >! "$_prompt_sauron_precmd_async_data"
+  fi
+
+  # Signal completion to parent process.
+  kill -WINCH $$
+}
+
+function prompt_sauron_precmd {
+  setopt LOCAL_OPTIONS
+  unsetopt XTRACE KSH_ARRAYS
+
+  # Format PWD.
+  prompt_sauron_pwd
+
+  # Define prompts.
+
+  # editor_info[overwrite] is whether prompt input is in replace mode
+  # $(?::...) is a ternary operator based on the last command's exit code
+  #   it prints nothing if it was successful, otherwise prints the last
+  #   commands exit code, formatted to look more error-like
+  # VIM is for when the prompt is running from within vim (for example inside
+  #   a neovim terminal emulator)
+  RPROMPT='${editor_info[overwrite]}%(?:: %B%K{1}%F{10} %? %f%k%b)${VIM:+" %B%F{6}V%f%b"}'
+
+  # Kill the old process of slow commands if it is still running.
+  if (( _prompt_sauron_precmd_async_pid > 0 )); then
+    kill -KILL "$_prompt_sauron_precmd_async_pid" &>/dev/null
+  fi
+
+  # Compute slow commands in the background.
+  trap prompt_sauron_git_info WINCH
+  prompt_sauron_precmd_async &!
+  _prompt_sauron_precmd_async_pid=$!
+}
+
+function prompt_sauron_setup {
+  setopt LOCAL_OPTIONS
+  unsetopt XTRACE KSH_ARRAYS
+  prompt_opts=(cr percent subst)
+  _prompt_sauron_precmd_async_pid=0
+  _prompt_sauron_precmd_async_data="${TMPPREFIX}-prompt_sauron_data"
+
+  # Load required functions.
+  autoload -Uz add-zsh-hook
+
+  # Add hook for calling git-info before each command.
+  add-zsh-hook precmd prompt_sauron_precmd
+
+  # Set editor-info parameters.
+  zstyle ':prezto:module:editor:info:completing' format '%B%F{7}...%f%b'
+  zstyle ':prezto:module:editor:info:keymap:primary' format ' %B%F{1}❯%F{3}❯%F{2}❯%f%b'
+  zstyle ':prezto:module:editor:info:keymap:primary:overwrite' format ' %F{1}REPLACE%f'
+  zstyle ':prezto:module:editor:info:keymap:alternate' format ' %B%F{2}❮%F{3}❮%F{1}❮%f%b'
+
+  # Set git-info parameters.
+  zstyle ':prezto:module:git:info' verbose 'yes'
+  # Main contexts
+  zstyle ':prezto:module:git:info:action' format '%F{7}:%f%%B%F{9}%s%f%%b'
+  zstyle ':prezto:module:git:info:ahead' format ' %%B%F{5}▲%f%%b'
+  zstyle ':prezto:module:git:info:behind' format ' %%B%F{5}▼%f%%b'
+  zstyle ':prezto:module:git:info:branch' format ' %%B%F{2}%b%f%%b'
+  zstyle ':prezto:module:git:info:commit' format ' %%B%F{3}%.7c%f%%b'
+  zstyle ':prezto:module:git:info:position' format ' %%B%F{5}%p%f%%b'
+  zstyle ':prezto:module:git:info:stashed' format ' %%B%F{6}★%f%%b'
+  # Verbose contexts
+  zstyle ':prezto:module:git:info:added' format ' %%B%F{2}✚%f%%b'
+  zstyle ':prezto:module:git:info:deleted' format ' %%B%F{1}✖%f%%b'
+  zstyle ':prezto:module:git:info:modified' format ' %%B%F{4}●%f%%b'
+  zstyle ':prezto:module:git:info:renamed' format ' %%B%F{5}→%f%%b'
+  zstyle ':prezto:module:git:info:unmerged' format ' %%B%F{3}≠%f%%b'
+  zstyle ':prezto:module:git:info:untracked' format ' %%B%F{7}■%f%%b'
+  zstyle ':prezto:module:git:info:keys' format \
+    'status' '$(coalesce "%b" "%p" "%c")%s%A%B%S%a%d%m%r%U%u'
+
+  # Define prompts.
+  PROMPT='${SSH_TTY:+"%F{1}%n%f%F{7}@%f%F{9}%m%f "}%F{4}${_prompt_sauron_pwd}%(!. %B%F{1}#%f%b.)${editor_info[keymap]} '
+  RPROMPT=''
+  SPROMPT='zsh: correct %F{1}%R%f to %F{2}%r%f [nyae]? '
+}
+
+function prompt_sauron_preview {
+  local +h PROMPT=''
+  local +h RPROMPT=''
+  local +h SPROMPT=''
+
+  editor-info 2>/dev/null
+  prompt_preview_theme 'sauron'
+}
+
+prompt_sauron_setup "$@"
