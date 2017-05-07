@@ -176,7 +176,7 @@ function prompt_sauron_setup {
   zstyle ':prezto:module:git:info:added' format ' %%B%F{2}✚%f%%b'
   zstyle ':prezto:module:git:info:deleted' format ' %%B%F{1}✖%f%%b'
   zstyle ':prezto:module:git:info:modified' format ' %%B%F{4}●%f%%b'
-  zstyle ':prezto:module:git:info:renamed' format ' %%B%F{5}→%f%%b'
+  zstyle ':prezto:module:git:info:renamed' format ' %%B%F{5}▶%f%%b'
   zstyle ':prezto:module:git:info:unmerged' format ' %%B%F{3}≠%f%%b'
   zstyle ':prezto:module:git:info:untracked' format ' %%B%F{7}■%f%%b'
   zstyle ':prezto:module:git:info:keys' format \
