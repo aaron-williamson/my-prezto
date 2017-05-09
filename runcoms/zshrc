@@ -83,6 +83,7 @@ alias df="df -h"
 alias cdgr="git_root"
 alias mdp="markdown_preview"
 alias psa='ps -Ao "pid ppid state %cpu %mem rss start etime command"'
+alias gdiff="git diff --no-index"
 
 # Set commands back to their defaults
 alias cp='nocorrect cp'

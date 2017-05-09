@@ -2,26 +2,31 @@
 # A simple theme that displays relevant, contextual information.
 # Modified from sorin prompt
 #
-
+# Non ascii characters used in this prompt:
+# Left prompt:
+# ❯❯❯
+# ❮❮❮
+# Right prompt (git status):
+# ▲ ▼ ★ ✚ ✖ ● ▶ ≠ ■
 #
 # base16 Terminal Colors
 # -- ---------------
-#  0 Black (base 00)
+#  0 Black (base 00, background)
 #  1 Red
 #  2 Green
 #  3 Yellow
 #  4 Blue
 #  5 Magenta
 #  6 Cyan
-#  7 White (base 05)
+#  7 White (base 05, foreground)
 #  8 Base 03
-#  9 Bright orange?
+#  9 Bright orange
 # 10 Base 01
 # 11 Base 02
 # 12 Base 04
 # 13 Base 06
-# 14 Darge orange?
-# 15 Base 07 (true white)
+# 14 Dark orange
+# 15 Base 07
 #
 
 # Load dependencies.
