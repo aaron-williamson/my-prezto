@@ -69,9 +69,14 @@ function markdown_preview() {
     echo Error, file markdown.css exists. Canceling markdown preview.
     false
   else
-    cp ~/.dotfiles/other/markdown.css .
-    github-markdownb --stylesheet='markdown.css' $@
-    rm -f markdown.css
+    {
+      cp ~/.dotfiles/other/markdown.css .
+      github-markdownb --stylesheet='markdown.css' $@ >/dev/null 2>&1
+      if [[ "$?" -ne 0 ]]; then
+        echo There was an error generating the markdown preview.
+      fi
+      rm -f markdown.css
+    } &
   fi
 }
 
@@ -84,6 +89,7 @@ alias cdgr="git_root"
 alias mdp="markdown_preview"
 alias psa='ps -Ao "pid ppid state %cpu %mem rss start etime command"'
 alias gdiff="git diff --no-index"
+alias agp="ag --pager $PAGER"
 
 # Set commands back to their defaults
 alias cp='nocorrect cp'
