@@ -130,12 +130,22 @@ function prompt_sauron_precmd {
   # Define prompts.
 
   # editor_info[overwrite] is whether prompt input is in replace mode
-  # $(?::...) is a ternary operator based on the last command's exit code
+  #
+  # %(?::...) is a ternary operator based on the last command's exit code
   #   it prints nothing if it was successful, otherwise prints the last
   #   commands exit code, formatted to look more error-like
+  #
   # VIM is for when the prompt is running from within vim (for example inside
-  #   a neovim terminal emulator)
-  RPROMPT='${editor_info[overwrite]}%(?:: %B%K{1}%F{10} %? %f%k%b)${VIM:+" %B%F{6}V%f%b"}'
+  #   a neovim terminal emulator). ${VIM:+"..."} simply means if VIM is not
+  #   null then substitute "..."
+  #
+  # %(1j:...:) is also a ternary operator, but it's based on the number of
+  #   background jobs. It will print the number of jobs if it's greater than
+  #   or equal to one.
+  #
+  # %* prints the current 24 hour time with seconds (useful for timing
+  #   commands)
+  RPROMPT='${editor_info[overwrite]}%(?:: %B%K{1}%F{10} %? %f%k%b)%(1j: %B%F{5}[%j]%f%b:) %F{4}%*%f${VIM:+" %B%F{6}V%f%b"}'
 
   # Kill the old process of slow commands if it is still running.
   if (( _prompt_sauron_precmd_async_pid > 0 )); then
