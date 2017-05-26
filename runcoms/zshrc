@@ -126,3 +126,8 @@ fi
 if (( $+commands[thefuck] )); then
   eval $(thefuck --alias)
 fi
+
+# Alias for sudoedit where not available
+if (( $+commands[sudo] )) && ! (( $+commands[sudoedit] )); then
+  alias sudoedit='sudo -e'
+fi
