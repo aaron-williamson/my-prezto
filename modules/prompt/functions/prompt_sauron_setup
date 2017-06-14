@@ -163,7 +163,7 @@ function prompt_sauron_setup {
   unsetopt XTRACE KSH_ARRAYS
   prompt_opts=(cr percent subst)
   _prompt_sauron_precmd_async_pid=0
-  _prompt_sauron_precmd_async_data="${TMPPREFIX}-prompt_sauron_data"
+  _prompt_sauron_precmd_async_data=$(mktemp "${TMPDIR}/sauron-prompt-async-XXXXXXXXXX")
 
   # Load required functions.
   autoload -Uz add-zsh-hook

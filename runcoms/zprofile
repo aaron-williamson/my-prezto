@@ -82,9 +82,22 @@ fi
 # Temporary Files
 #
 
-TMPPREFIX="$(mktemp -d)/zsh"
+# Use a non-random tmpdir
+if [[ -z "$TMPDIR" ]]; then
+  export TMPDIR="/tmp/zsh-$UID"
+fi
 
+# Create the tmpdir if it doesn't exist
+if [[ ! -d "$TMPDIR" ]]; then
+  mkdir "$TMPDIR"
+  chmod 700 "$TMPDIR"
+fi
+
+TMPPREFIX="${TMPDIR%/}/zsh"
+
+#
 # Secrets file
+#
 if [[ -f "$HOME/.secrets" ]]; then
   source "$HOME/.secrets"
 fi
