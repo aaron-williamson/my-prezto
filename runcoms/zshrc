@@ -99,7 +99,6 @@ alias rm='nocorrect rm'
 
 # Automatically ls after every cd
 function chpwd() {
-  emulate -L zsh
   ls
 }
 
@@ -120,6 +119,12 @@ if (( $+commands[fzf] )); then
 
   # Key bindings
   source "${FZF_PREFIX}/key-bindings.zsh"
+
+  # Completion
+  source "${FZF_PREFIX}/completion.zsh"
+
+  # Ctrl-Y for change directory
+  bindkey '^Y' fzf-cd-widget
 fi
 
 # thefuck alias
