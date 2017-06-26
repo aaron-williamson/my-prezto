@@ -43,6 +43,10 @@ fi
 # Paths
 #
 
+# For golang
+export GOPATH=$home/go
+export PATH=$HOME/go/bin:$PATH
+
 # For rustup
 export PATH=$HOME/.cargo/bin:$PATH
 
