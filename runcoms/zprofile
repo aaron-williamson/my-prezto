@@ -44,7 +44,7 @@ fi
 #
 
 # For golang
-export GOPATH=$home/go
+export GOPATH=$HOME/go
 export PATH=$HOME/go/bin:$PATH
 
 # For rustup
