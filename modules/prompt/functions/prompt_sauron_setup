@@ -1,6 +1,6 @@
 # vim: ft=zsh
 # A simple theme that displays relevant, contextual information.
-# Modified from sorin prompt
+# Based on sorin prompt
 #
 # Non ascii characters used in this prompt:
 # Left prompt:
@@ -27,12 +27,11 @@
 # 13 Base 06
 # 14 Dark orange
 # 15 Base 07
-#
 
 # Load dependencies.
 pmodload 'helper'
 
-function prompt_sauron_pwd {
+prompt_sauron_pwd() {
   # This is a function to truncate the current directory
   # eg $HOME/Documents/some/dir becomes ~/D/s/dir
   # Explanation:
@@ -91,38 +90,37 @@ function prompt_sauron_pwd {
   fi
 }
 
-function prompt_sauron_git_info {
-  if (( _prompt_sauron_precmd_async_pid > 0 )); then
-    # Append Git status.
-    if [[ -s "$_prompt_sauron_precmd_async_data" ]]; then
-      alias typeset='typeset -g'
-      source "$_prompt_sauron_precmd_async_data"
-      RPROMPT+='${git_info:+${(e)git_info[status]}}'
-      unalias typeset
-    fi
+prompt_sauron_async() {
+  # CD to passed pwd
+  cd "$1"
 
-    # Reset PID.
-    _prompt_sauron_precmd_async_pid=0
+  # Get Git repository information.
+  if (( $+functions[git-info] )); then
+    git-info
+    echo "${git_info[status]}"
+  fi
+}
 
-    # Redisplay prompt.
+prompt_sauron_async_callback() {
+  # $1 = job name
+  # $2 = job return code
+  # $3 = job stdout
+  # $4 = job exeuction time
+  # $5 = job stderr
+
+  # If the async job was successful
+  if [[ "$1" == "prompt_sauron_async" ]] && [[ $2 -eq 0 ]]; then
+    # Add git info to the right-hand prompt
+    RPROMPT+="$3"
+
+    # Redisplay prompt
     zle && zle reset-prompt
   fi
 }
 
-function prompt_sauron_precmd_async {
-  # Get Git repository information.
-  if (( $+functions[git-info] )); then
-    git-info
-    typeset -p git_info >! "$_prompt_sauron_precmd_async_data"
-  fi
-
-  # Signal completion to parent process.
-  kill -WINCH $$
-}
-
-function prompt_sauron_precmd {
-  setopt LOCAL_OPTIONS
-  unsetopt XTRACE KSH_ARRAYS
+prompt_sauron_precmd() {
+  setopt local_options
+  unsetopt xtrace ksh_arrays
 
   # Format PWD.
   prompt_sauron_pwd
@@ -147,26 +145,47 @@ function prompt_sauron_precmd {
   #   commands)
   RPROMPT='${editor_info[overwrite]}%(?:: %B%K{1}%F{10} %? %f%k%b)%(1j: %B%F{5}[%j]%f%b:) %F{4}%*%f${VIM:+" %B%F{6}V%f%b"}'
 
-  # Kill the old process of slow commands if it is still running.
-  if (( _prompt_sauron_precmd_async_pid > 0 )); then
-    kill -KILL "$_prompt_sauron_precmd_async_pid" &>/dev/null
-  fi
+  # If async init hasn't already run
+  ((!${prompt_sauron_async_init:-0})) && {
+    # Create "prompt_sauron" worker
+    # -u jobs are unique
+    # -n notify
+    async_start_worker "prompt_sauron" -u -n
 
-  # Compute slow commands in the background.
-  trap prompt_sauron_git_info WINCH
-  prompt_sauron_precmd_async &!
-  _prompt_sauron_precmd_async_pid=$!
+    async_register_callback "prompt_sauron" prompt_sauron_async_callback
+
+    # We've completed async setup
+    prompt_sauron_async_init=1
+  }
+
+  # Flush any currently running async jobs
+  async_flush_jobs "prompt_sauron"
+
+  # Let the async worker compute slow commands
+  async_job "prompt_sauron" prompt_sauron_async "$PWD"
 }
 
-function prompt_sauron_setup {
-  setopt LOCAL_OPTIONS
-  unsetopt XTRACE KSH_ARRAYS
-  prompt_opts=(cr percent subst)
-  _prompt_sauron_precmd_async_pid=0
-  _prompt_sauron_precmd_async_data=$(mktemp "${TMPDIR:-/tmp}/sauron-prompt-async-XXXXXXXXXX")
+prompt_sauron_setup() {
+  # When we return, restore ZSH options to what they were before
+  setopt local_options
+
+  # Don't print commands or use ksh arrays
+  unsetopt xtrace ksh_arrays
+
+  prompt_opts=(
+    cr      # Print a carriage return just before printing a prompt
+    percent # % is treated specially in prompt expansion
+    subst   # Perform a bunch of expansions in the prompt
+  )
 
   # Load required functions.
+  # autoload behaves like functions -u, which behaves like typeset -fu
+  # -f names refer to functions rather than parameters
+  # -u mark the function for autoloading
+  # -U suppress alias expansion when loading function
+  # -z loads function zsh style
   autoload -Uz add-zsh-hook
+  autoload -Uz async && async
 
   # Add hook for calling git-info before each command.
   add-zsh-hook precmd prompt_sauron_precmd
@@ -201,12 +220,13 @@ function prompt_sauron_setup {
     'status' '$(coalesce "%b" "%p" "%c")%s%A%B%S%a%d%m%r%U%u'
 
   # Define prompts.
+  # TODO: document these next few lines
   PROMPT='${SSH_TTY:+"%F{1}%n%f%F{7}@%f%F{9}%m%f "}%F{4}${_prompt_sauron_pwd}%(!. %B%F{1}#%f%b.)${editor_info[keymap]} '
   RPROMPT=''
   SPROMPT='zsh: correct %F{1}%R%f to %F{2}%r%f [nyae]? '
 }
 
-function prompt_sauron_preview {
+prompt_sauron_preview() {
   local +h PROMPT=''
   local +h RPROMPT=''
   local +h SPROMPT=''
