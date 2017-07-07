@@ -31,7 +31,7 @@
 # Load dependencies.
 pmodload 'helper'
 
-prompt_sauron_pwd() {
+function prompt_sauron_pwd {
   # This is a function to truncate the current directory
   # eg $HOME/Documents/some/dir becomes ~/D/s/dir
   # Explanation:
@@ -90,7 +90,7 @@ prompt_sauron_pwd() {
   fi
 }
 
-prompt_sauron_async() {
+function prompt_sauron_async {
   # CD to passed pwd
   cd "$1"
 
@@ -101,7 +101,7 @@ prompt_sauron_async() {
   fi
 }
 
-prompt_sauron_async_callback() {
+function prompt_sauron_async_callback {
   # $1 = job name
   # $2 = job return code
   # $3 = job stdout
@@ -118,7 +118,7 @@ prompt_sauron_async_callback() {
   fi
 }
 
-prompt_sauron_precmd() {
+function prompt_sauron_precmd {
   setopt local_options
   unsetopt xtrace ksh_arrays
 
@@ -165,7 +165,7 @@ prompt_sauron_precmd() {
   async_job "prompt_sauron" prompt_sauron_async "$PWD"
 }
 
-prompt_sauron_setup() {
+function prompt_sauron_setup {
   # When we return, restore ZSH options to what they were before
   setopt local_options
 
@@ -226,7 +226,7 @@ prompt_sauron_setup() {
   SPROMPT='zsh: correct %F{1}%R%f to %F{2}%r%f [nyae]? '
 }
 
-prompt_sauron_preview() {
+function prompt_sauron_preview {
   local +h PROMPT=''
   local +h RPROMPT=''
   local +h SPROMPT=''

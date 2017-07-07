@@ -54,7 +54,7 @@ elif [[ "$OSTYPE" == linux* ]]; then
 fi
 
 # Get back to git root directory easily
-function git_root() {
+function git_root {
   if git rev-parse --is-inside-work-tree 2> /dev/null; then
     cd $(git rev-parse --show-toplevel)
   else
@@ -64,7 +64,7 @@ function git_root() {
 }
 
 # Open a md file in web browser with custom css
-function markdown_preview() {
+function markdown_preview {
   if [[ -e markdown.css ]]; then
     echo Error, file markdown.css exists. Canceling markdown preview.
     false
@@ -98,7 +98,7 @@ alias mv='nocorrect mv'
 alias rm='nocorrect rm'
 
 # Automatically ls after every cd
-function chpwd() {
+function chpwd {
   ls
 }
 
