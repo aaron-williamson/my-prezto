@@ -19,3 +19,6 @@
 [submodule "modules/prompt/functions/pure"]
 	path = modules/prompt/external/pure
 	url = https://github.com/sindresorhus/pure.git
+[submodule "modules/prompt/external/zsh-async"]
+	path = modules/prompt/external/zsh-async
+	url = https://github.com/mafredri/zsh-async
