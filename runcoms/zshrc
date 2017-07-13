@@ -41,7 +41,6 @@ fi
 if [[ "$OSTYPE" == darwin* ]]; then
   alias la="ls -alhGF"
   alias ls="ls -lhFG"
-  alias du="du -h -d 1"
 
   # File specific aliases
   if [[ -f "$HOME/.ssh/id_rsa.pub" ]]; then
@@ -50,12 +49,11 @@ if [[ "$OSTYPE" == darwin* ]]; then
 elif [[ "$OSTYPE" == linux* ]]; then
   alias ls="ls -lhF --color=auto"
   alias la="ls -alhF --color=auto"
-  alias du="du -h --max-depth=1"
 fi
 
 # Get back to git root directory easily
 function git_root {
-  if git rev-parse --is-inside-work-tree 2> /dev/null; then
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     cd $(git rev-parse --show-toplevel)
   else
     >&2 echo "Error, not inside a git repository"
@@ -90,12 +88,6 @@ alias mdp="markdown_preview"
 alias psa='ps -Ao "pid ppid state %cpu %mem rss start etime command"'
 alias gdiff="git diff --no-index"
 alias agp="ag --pager $PAGER"
-
-# Set commands back to their defaults
-alias cp='nocorrect cp'
-alias ln='nocorrect ln'
-alias mv='nocorrect mv'
-alias rm='nocorrect rm'
 
 # Automatically ls after every cd
 function chpwd {
