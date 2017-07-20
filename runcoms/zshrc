@@ -26,6 +26,14 @@ bindkey "^U" backward-kill-line
 bindkey "^P" up-history
 bindkey "^N" down-history
 
+# Extra vi mode bindings
+bindkey -M vicmd "gu" vi-down-case
+bindkey -M vicmd "gU" vi-up-case
+bindkey -M visual "u" vi-down-case
+bindkey -M visual "U" vi-up-case
+bindkey -M visual "y" vi-yank
+bindkey -M visual "p" put-replace-selection
+
 # 10ms for key sequences - makes everything more responsive
 KEYTIMEOUT=1
 
