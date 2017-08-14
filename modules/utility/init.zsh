@@ -41,8 +41,8 @@ alias ftp='noglob ftp'
 alias history='noglob history'
 alias locate='noglob locate'
 alias rake='noglob rake'
-alias rsync='noglob rsync'
-alias scp='noglob scp'
+alias rsync='noglob noremoteglob rsync'
+alias scp='noglob noremoteglob scp'
 alias sftp='noglob sftp'
 
 # Define general aliases.
@@ -64,10 +64,10 @@ alias mvi="${aliases[mv]:-mv} -i"
 alias cpi="${aliases[cp]:-cp} -i"
 alias lni="${aliases[ln]:-ln} -i"
 if zstyle -T ':prezto:module:utility' safe-ops; then
-  alias rm="${aliases[rm]:-rm} -i"
-  alias mv="${aliases[mv]:-mv} -i"
-  alias cp="${aliases[cp]:-cp} -i"
-  alias ln="${aliases[ln]:-ln} -i"
+  alias rm='rmi'
+  alias mv='mvi'
+  alias cp='cpi'
+  alias ln='lni'
 fi
 
 # ls
@@ -213,4 +213,24 @@ function find-exec {
 # Displays user owned processes status.
 function psu {
   ps -U "${1:-$LOGNAME}" -o 'pid,%cpu,%mem,command' "${(@)argv[2,-1]}"
+}
+
+# Enables globbing selectively on path arguments.
+# Globbing is enabled on local paths (starting in '/' and './') and disabled
+# on remote paths (containing ':' but not starting in '/' and './'). This is
+# useful for programs that have their own globbing for remote paths.
+# Currently, this is used by default for 'rsync' and 'scp'.
+# Example:
+#   - Local: '*.txt', './foo:2017*.txt', '/var/*:log.txt'
+#   - Remote: user@localhost:foo/
+function noremoteglob {
+  local -a argo
+  local cmd="$1"
+  for arg in ${argv:2}; do case $arg in
+    ( ./* ) argo+=( ${~arg} ) ;; # local relative, glob
+    (  /* ) argo+=( ${~arg} ) ;; # local absolute, glob
+    ( *:* ) argo+=( ${arg}  ) ;; # remote, noglob
+    (  *  ) argo+=( ${~arg} ) ;; # default, glob
+  esac; done
+  command $cmd "${(@)argo}"
 }
