@@ -96,6 +96,13 @@ alias mdp="markdown_preview"
 alias psa='ps -Ao "pid ppid state %cpu %mem rss start etime command"'
 alias gdiff="git diff --no-index"
 alias agp="ag --pager $PAGER"
+alias rg="rg --smart-case"
+alias rgp="ripgrep_pager"
+
+# For piping rg to a pager
+function ripgrep_pager {
+  rg --pretty $@ | $PAGER
+}
 
 # Automatically ls after every cd
 function chpwd {
