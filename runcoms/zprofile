@@ -44,17 +44,19 @@ fi
 #
 
 # For golang
-export GOPATH=$HOME/go
-export PATH=$HOME/go/bin:$PATH
+GOPATH=$HOME/go
+PATH=$HOME/go/bin:$PATH
 
 # For rustup
-export PATH=$HOME/.cargo/bin:$PATH
+PATH=$HOME/.cargo/bin:$PATH
 
 # Always use user-defined programs before system-defined ones
-export PATH=$HOME/bin:$PATH
+PATH=$HOME/bin:$PATH
 
 # For rbenv
-export PATH=$HOME/.rbenv/bin:$PATH
+PATH=$HOME/.rbenv/bin:$PATH
+
+export PATH
 
 # Ensure path arrays do not contain duplicates.
 typeset -gU cdpath fpath mailpath path
