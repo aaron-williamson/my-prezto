@@ -5,12 +5,12 @@
 #   Sorin Ionescu <sorin.ionescu@gmail.com>
 #
 
-# Source Prezto.
+# Source Prezto. | ~50ms
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
-# My customization starts here
+# My settings | ~2ms
 
 # Enable reverse and forward search
 bindkey "^R" history-incremental-pattern-search-backward
@@ -52,7 +52,7 @@ if [[ "$OSTYPE" == darwin* ]]; then
 
   # File specific aliases
   if [[ -f "$HOME/.ssh/id_rsa.pub" ]]; then
-    alias cpypub="echo -n $(cat $HOME/.ssh/id_rsa.pub) | pbcopy"
+    alias cpypub="cat $HOME/.ssh/id_rsa.pub | pbcopy"
   fi
 elif [[ "$OSTYPE" == linux* ]]; then
   alias ls="ls -lhF --color=auto"
@@ -99,6 +99,11 @@ alias agp="ag --pager $PAGER"
 alias rg="rg --smart-case"
 alias rgp="ripgrep_pager"
 
+# Alias for sudoedit where not available
+if (( $+commands[sudo] )) && ! (( $+commands[sudoedit] )); then
+  alias sudoedit='sudo -e'
+fi
+
 # For piping rg to a pager
 function ripgrep_pager {
   rg --pretty $@ | $PAGER
@@ -110,16 +115,37 @@ function chpwd {
 }
 
 # Machine specific rc settings
-if [[ -f "$HOME/.$(hostname)" ]]; then
-  source "$HOME/.$(hostname)"
+if [[ -f "$HOME/.$HOST" ]]; then
+  source "$HOME/.$HOST"
 fi
 
-# Load rbenv
+# Load rbenv | ~7ms
 if (( $+commands[rbenv] )); then
-  eval "$(rbenv init -)"
+  # Taken from rbenv init -
+  export PATH="/Users/aaron/.rbenv/shims:${PATH}"
+  export RBENV_SHELL=zsh
+  source '/usr/local/Cellar/rbenv/1.1.1/libexec/../completions/rbenv.zsh'
+
+  # This can be run in the background
+  command rbenv rehash 2>/dev/null &!
+
+  function rbenv() {
+    local command
+    command="$1"
+    if [ "$#" -gt 0 ]; then
+      shift
+    fi
+
+    case "$command" in
+      rehash|shell)
+        eval "$(rbenv "sh-$command" "$@")";;
+      *)
+        command rbenv "$command" "$@";;
+    esac
+  }
 fi
 
-# fzf setup
+# fzf setup | ~10ms
 if (( $+commands[fzf] )); then
   # Auto-completion
   [[ $- == *i* ]] && source "${FZF_PREFIX}/completion.zsh" 2> /dev/null
@@ -132,14 +158,4 @@ if (( $+commands[fzf] )); then
 
   # Ctrl-Y for change directory
   bindkey '^Y' fzf-cd-widget
-fi
-
-# thefuck alias
-if (( $+commands[thefuck] )); then
-  eval $(thefuck --alias)
-fi
-
-# Alias for sudoedit where not available
-if (( $+commands[sudo] )) && ! (( $+commands[sudoedit] )); then
-  alias sudoedit='sudo -e'
 fi
