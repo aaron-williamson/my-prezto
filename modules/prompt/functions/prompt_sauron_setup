@@ -175,6 +175,7 @@ function prompt_sauron_setup {
   prompt_opts=(
     cr      # Print a carriage return just before printing a prompt
     percent # % is treated specially in prompt expansion
+    sp      # Attempt to preserve a partial line (a line not ending in newline)
     subst   # Perform a bunch of expansions in the prompt
   )
 
