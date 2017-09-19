@@ -5,6 +5,17 @@
 # Authors: Sorin Ionescu <sorin.ionescu@gmail.com>
 #
 
+cached_rbenv_file="${TMPDIR:-/tmp}/cached_rbenv_command_$UID"
+
+# Function to cache the rbenv init command, saving time on startup
+function cached_rbenv {
+  if ! [[ -s "$cached_rbenv_file" ]]; then
+    rbenv init - zsh --no-rehash > "$cached_rbenv_file"
+  fi
+
+  source "$cached_rbenv_file"
+}
+
 # Load RVM into the shell session.
 if [[ -s "$HOME/.rvm/scripts/rvm" ]]; then
   # Unset AUTO_NAME_DIRS since auto adding variable-stored paths to ~ list
@@ -17,11 +28,11 @@ if [[ -s "$HOME/.rvm/scripts/rvm" ]]; then
 # Load manually installed rbenv into the shell session.
 elif [[ -s "$HOME/.rbenv/bin/rbenv" ]]; then
   path=("$HOME/.rbenv/bin" $path)
-  eval "$(rbenv init - --no-rehash zsh)"
+  cached_rbenv
 
 # Load package manager installed rbenv into the shell session.
 elif (( $+commands[rbenv] )); then
-  eval "$(rbenv init - --no-rehash zsh)"
+  cached_rbenv
 
 # Load package manager installed chruby into the shell session.
 elif (( $+commands[chruby-exec] )); then

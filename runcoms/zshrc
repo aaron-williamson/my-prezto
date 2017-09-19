@@ -119,32 +119,6 @@ if [[ -f "$HOME/.$HOST" ]]; then
   source "$HOME/.$HOST"
 fi
 
-# Load rbenv | ~7ms
-if (( $+commands[rbenv] )); then
-  # Taken from rbenv init -
-  export PATH="/Users/aaron/.rbenv/shims:${PATH}"
-  export RBENV_SHELL=zsh
-  source '/usr/local/Cellar/rbenv/1.1.1/libexec/../completions/rbenv.zsh'
-
-  # This can be run in the background
-  command rbenv rehash 2>/dev/null &!
-
-  function rbenv() {
-    local command
-    command="$1"
-    if [ "$#" -gt 0 ]; then
-      shift
-    fi
-
-    case "$command" in
-      rehash|shell)
-        eval "$(rbenv "sh-$command" "$@")";;
-      *)
-        command rbenv "$command" "$@";;
-    esac
-  }
-fi
-
 # fzf setup | ~10ms
 if (( $+commands[fzf] )); then
   # Auto-completion

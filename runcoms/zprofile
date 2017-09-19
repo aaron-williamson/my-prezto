@@ -53,9 +53,6 @@ PATH=$HOME/.cargo/bin:$PATH
 # Always use user-defined programs before system-defined ones
 PATH=$HOME/bin:$PATH
 
-# For rbenv
-PATH=$HOME/.rbenv/bin:$PATH
-
 export PATH
 
 # Ensure path arrays do not contain duplicates.
