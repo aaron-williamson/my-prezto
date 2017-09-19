@@ -10,7 +10,7 @@ cached_rbenv_file="${TMPDIR:-/tmp}/cached_rbenv_command_$UID"
 # Function to cache the rbenv init command, saving time on startup
 function cached_rbenv {
   if ! [[ -s "$cached_rbenv_file" ]]; then
-    rbenv init - zsh --no-rehash > "$cached_rbenv_file"
+    rbenv init - --no-rehash zsh > "$cached_rbenv_file"
   fi
 
   source "$cached_rbenv_file"
