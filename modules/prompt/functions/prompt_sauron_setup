@@ -143,7 +143,14 @@ function prompt_sauron_precmd {
   #
   # %* prints the current 24 hour time with seconds (useful for timing
   #   commands)
-  RPROMPT='${editor_info[overwrite]}%(?:: %B%K{1}%F{10} %? %f%k%b)%(1j: %B%F{5}[%j]%f%b:) %F{4}%*%f${VIM:+" %B%F{6}V%f%b"}'
+  #
+  # We check for no truecolor flag so that we don't show errors in bright green
+  if [[ -z "$NO_TRUECOLOR" ]]; then
+    ERROR_COLOR=18
+  else
+    ERROR_COLOR=10
+  fi
+  RPROMPT='${editor_info[overwrite]}%(?:: %B%K{1}%F{$ERROR_COLOR} %? %f%k%b)%(1j: %B%F{5}[%j]%f%b:) %F{4}%*%f${VIM:+" %B%F{6}V%f%b"}'
 
   # If async init hasn't already run
   ((!${prompt_sauron_async_init:-0})) && {

@@ -84,6 +84,13 @@ if (( $#commands[(i)lesspipe(|.sh)] )); then
   export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"
 fi
 
+# Location of base16-shell for non true color terminals
+export BASE16_SHELL="$HOME/.config/base16-shell/"
+
+if [[ -d "$BASE16_SHELL" ]]; then
+  export NO_TRUECOLOR="true"
+fi
+
 #
 # Secrets file
 #
