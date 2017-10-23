@@ -90,8 +90,8 @@ function prompt_sauron_pwd {
   fi
 }
 
-function prompt_sauron_async {
-  # CD to passed pwd, use -q so we don't get any chpwd hooks
+function prompt_sauron_async_git {
+  # CD to passed pwd, use -q so we don't activate the chpwd hooks
   builtin cd -q "$1"
 
   # Get Git repository information.
@@ -99,6 +99,21 @@ function prompt_sauron_async {
     git-info
     echo "${git_info[status]}"
   fi
+}
+
+function prompt_sauron_async_touchbar {
+  # CD to passed pwd, use -q so we don't activate the chpwd hooks
+  builtin cd -q "$1"
+
+  # Set the branch
+  branch="$(git rev-parse --abbrev-ref HEAD)"
+
+  # Return a failure if the branch is empty
+  if [[ -z "$branch" ]]; then
+    return 1
+  fi
+
+  echo "$branch"
 }
 
 function prompt_sauron_async_callback {
@@ -109,12 +124,17 @@ function prompt_sauron_async_callback {
   # $5 = job stderr
 
   # If the async job was successful
-  if [[ "$1" == "prompt_sauron_async" ]] && [[ $2 -eq 0 ]]; then
-    # Add git info to the right-hand prompt
-    RPROMPT+="$3"
+  if [[ $2 -eq 0 ]]; then
+    if [[ "$1" == "prompt_sauron_async_git" ]]; then
+      # Add git info to the right-hand prompt
+      RPROMPT+="$3"
 
-    # Redisplay prompt
-    zle && zle reset-prompt
+      # Redisplay prompt
+      zle && zle reset-prompt
+    elif [[ "$1" == "prompt_sauron_async_touchbar" ]]; then
+      touchbar_status="$touchbar_status : $3"
+      it2setkeylabel set status "$touchbar_status"
+    fi
   fi
 }
 
@@ -146,7 +166,7 @@ function prompt_sauron_precmd {
   RPROMPT='${editor_info[overwrite]}%(?:: %B%K{1}%F{10} %? %f%k%b)%(1j: %B%F{5}[%j]%f%b:) %F{4}%*%f${VIM:+" %B%F{6}V%f%b"}'
 
   # If async init hasn't already run
-  ((!${prompt_sauron_async_init:-0})) && {
+  (( !${prompt_sauron_async_init:-0} )) && {
     # Create "prompt_sauron" worker
     # -u jobs are unique
     # -n notify
@@ -162,7 +182,17 @@ function prompt_sauron_precmd {
   async_flush_jobs "prompt_sauron"
 
   # Let the async worker compute slow commands
-  async_job "prompt_sauron" prompt_sauron_async "$PWD"
+  async_job "prompt_sauron" prompt_sauron_async_git "$PWD"
+
+  # Lastly, perform some actions but only if we have a touchbar
+  if (( $+commands[it2setkeylabel] )); then
+    # Set the status to initially be our pwd
+    touchbar_status="${${PWD/#$HOME/~}:t}"
+    it2setkeylabel set status "$touchbar_status"
+
+    # Start an async job that handles other touchbar configuration
+    async_job "prompt_sauron" prompt_sauron_async_touchbar "$PWD"
+  fi
 }
 
 function prompt_sauron_setup {
