@@ -88,6 +88,9 @@ function markdown_preview {
 
 # General aliases
 alias vimkh="vim $HOME/.ssh/known_hosts"
+alias vimt="vim -p"
+alias vimv="vim -O"
+alias vims="vim -o"
 alias vikh="vimkh"
 alias quit="exit"
 alias df="df -h"
