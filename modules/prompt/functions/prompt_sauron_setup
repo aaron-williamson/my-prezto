@@ -132,7 +132,7 @@ function prompt_sauron_async_callback {
       # Redisplay prompt
       zle && zle reset-prompt
     elif [[ "$1" == "prompt_sauron_async_touchbar" ]]; then
-      touchbar_status="$touchbar_status : $3"
+      touchbar_status="$touchbar_status 🎋 $3"
       it2setkeylabel set status "$touchbar_status"
     fi
   fi
@@ -187,7 +187,7 @@ function prompt_sauron_precmd {
   # Lastly, perform some actions but only if we have a touchbar
   if (( $+commands[it2setkeylabel] )); then
     # Set the status to initially be our pwd
-    touchbar_status="${${PWD/#$HOME/~}:t}"
+    touchbar_status="🗂 ${_prompt_sauron_pwd}"
     it2setkeylabel set status "$touchbar_status"
 
     # Start an async job that handles other touchbar configuration
