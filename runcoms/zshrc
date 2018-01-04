@@ -117,6 +117,14 @@ function chpwd {
   ls
 }
 
+# Function for gitignore.io, always include tags and vim
+function gi {
+  curl -L -s "https://www.gitignore.io/api/tags,vim,$@"
+}
+
+# List available gitignores
+alias gil="curl -L -s https://www.gitignore.io/api/list"
+
 # Machine specific rc settings
 if [[ -f "$HOME/.$HOST" ]]; then
   source "$HOME/.$HOST"
