@@ -54,6 +54,12 @@ if [[ "$OSTYPE" == darwin* ]]; then
   if [[ -f "$HOME/.ssh/id_rsa.pub" ]]; then
     alias cpypub="cat $HOME/.ssh/id_rsa.pub | pbcopy"
   fi
+
+  # Brew aliases
+  if (( $+commands[brew] )); then
+    alias brewld="brew_list_deps"
+    alias brewlu="brew_list_uses"
+  fi
 elif [[ "$OSTYPE" == linux* ]]; then
   alias ls="ls -lhF --color=auto"
   alias la="ls -alhF --color=auto"
@@ -84,6 +90,34 @@ function markdown_preview {
       rm -f markdown.css
     } &
   fi
+}
+
+# List installed brew formulae and their dependencies
+function brew_list_deps {
+  local formulae=$(brew list)
+
+  # Split the list of formulae by newline
+  for formula in ${(f)formulae}; do
+    echo -n "$FG[blue] $formula $FG[white]"
+    local formula_deps=$(brew deps "$formula")
+
+    # Split the formulae deps on newline then join them with spaces
+    echo "${(fj: :)formula_deps}"
+  done
+}
+
+# List brew formulae and what uses them
+function brew_list_uses {
+  local formulae=$(brew list)
+
+  # Split the list of formulae by newline
+  for formula in ${(f)formulae}; do
+    echo -n "$FG[blue] $formula $FG[white]"
+    local formulae_uses=$(brew uses "$formula" --installed)
+
+    # Split the formulae uses on newline then join them with spaces
+    echo "${(fj: :)formulae_uses}"
+  done
 }
 
 # General aliases
