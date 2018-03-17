@@ -68,7 +68,7 @@ fi
 # Get back to git root directory easily
 function git_root {
   if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    cd $(git rev-parse --show-toplevel)
+    cd "$(git rev-parse --show-toplevel)"
   else
     >&2 echo "Error, not inside a git repository"
     false
