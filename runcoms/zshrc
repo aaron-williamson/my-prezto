@@ -174,4 +174,11 @@ if (( $+commands[fzf] )); then
 
   # Ctrl-Y for change directory
   bindkey '^Y' fzf-cd-widget
+
+  # Use ripgrep or the silver searcher to list files if available
+  if (( $+commands[rg] )); then
+    export FZF_DEFAULT_COMMAND='rg --files-with-matches --hidden --glob !".git/" ""'
+  elif (( $+commands[ag] )); then
+    export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
+  fi
 fi
