@@ -177,7 +177,7 @@ if (( $+commands[fzf] )); then
 
   # Use ripgrep or the silver searcher to list files if available
   if (( $+commands[rg] )); then
-    export FZF_DEFAULT_COMMAND='rg --files-with-matches --hidden --glob !".git/" ""'
+    export FZF_DEFAULT_COMMAND='rg --files --hidden --glob !".git/"'
   elif (( $+commands[ag] )); then
     export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
   fi
