@@ -75,23 +75,6 @@ function git_root {
   fi
 }
 
-# Open a md file in web browser with custom css
-function markdown_preview {
-  if [[ -e markdown.css ]]; then
-    echo Error, file markdown.css exists. Canceling markdown preview.
-    false
-  else
-    {
-      cp ~/.dotfiles/other/markdown.css .
-      github-markdownb --stylesheet='markdown.css' $@ >/dev/null 2>&1
-      if [[ "$?" -ne 0 ]]; then
-        echo There was an error generating the markdown preview.
-      fi
-      rm -f markdown.css
-    } &
-  fi
-}
-
 # List installed brew formulae and their dependencies
 function brew_list_deps {
   local formulae=$(brew list)
@@ -129,7 +112,6 @@ alias vikh="vimkh"
 alias quit="exit"
 alias df="df -h"
 alias cdgr="git_root"
-alias mdp="markdown_preview"
 alias psa='ps -Ao "pid ppid state %cpu %mem rss start etime command"'
 alias gdiff="git diff --no-index"
 alias agp="ag --pager $PAGER"
