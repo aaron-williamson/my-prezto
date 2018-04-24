@@ -145,14 +145,11 @@ fi
 
 # fzf setup | ~10ms
 if (( $+commands[fzf] )); then
-  # Auto-completion
+  # Auto-completion if interactive shell
   [[ $- == *i* ]] && source "${FZF_PREFIX}/completion.zsh" 2> /dev/null
 
   # Key bindings
   source "${FZF_PREFIX}/key-bindings.zsh"
-
-  # Completion
-  source "${FZF_PREFIX}/completion.zsh"
 
   # Ctrl-Y for change directory
   bindkey '^Y' fzf-cd-widget

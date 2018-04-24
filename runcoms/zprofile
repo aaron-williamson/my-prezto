@@ -9,11 +9,14 @@
 # OS X Specifics
 if [[ "$OSTYPE" == darwin* ]]; then
   export BROWSER='open'
-  export FZF_PREFIX="/usr/local/opt/fzf/shell"
 fi
 
-# Linux specifics
-if [[ "${OSTYPE}" == linux* ]]; then
+# Detect FZF Prefix if it exists
+if [[ -d "$HOME/.fzf/shell" ]]; then
+  export FZF_PREFIX="$HOME/.fzf/shell"
+elif [[ -d "/usr/local/opt/fzf/shell" ]]; then
+  export FZF_PREFIX="/usr/local/opt/fzf/shell"
+elif [[ -d "/usr/share/fzf" ]]; then
   export FZF_PREFIX="/usr/share/fzf"
 fi
 
@@ -49,6 +52,9 @@ PATH=$HOME/go/bin:$PATH
 
 # For rustup
 PATH=$HOME/.cargo/bin:$PATH
+
+# For FZF
+PATH=$HOME/.fzf/bin:$PATH
 
 # Always use user-defined programs before system-defined ones
 PATH=$HOME/bin:$PATH
