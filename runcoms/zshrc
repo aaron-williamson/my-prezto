@@ -103,6 +103,14 @@ function brew_list_uses {
   done
 }
 
+# Check an app using codesign
+function check_app {
+  app="$@"
+
+  codesign --verify --verbose "$app"
+  codesign --display --verbose=3 "$app"
+}
+
 # General aliases
 alias vimkh="vim $HOME/.ssh/known_hosts"
 alias vimt="vim -p"
