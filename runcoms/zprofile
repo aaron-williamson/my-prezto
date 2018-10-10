@@ -91,8 +91,15 @@ if (( $#commands[(i)lesspipe(|.sh)] )); then
 fi
 
 # Set up some rust variables for use with vim
+# Cache the result of rustc --print sysroot to speed up start time since
+# zlogin is sourced every time a new shell is opened (improvement by ~50ms)
+rust_sysroot_cache="$HOME/.rust_sysroot_cache"
 if (( $+commands[rustc] )); then
-  export RUST_SRC_PATH=$(rustc --print sysroot)/lib/rustlib/src/rust/src
+  if [[ ! -f "$rust_sysroot_cache" ]]; then
+    rustc --print sysroot > "$rust_sysroot_cache"
+  fi
+
+  export RUST_SRC_PATH=$(cat "$rust_sysroot_cache")/lib/rustlib/src/rust/src
 fi
 
 if (( $+commands[racer] )); then
