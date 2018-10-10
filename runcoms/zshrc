@@ -131,6 +131,13 @@ if (( $+commands[sudo] )) && ! (( $+commands[sudoedit] )); then
   alias sudoedit='sudo -e'
 fi
 
+# Homebrew aliases
+if (( $+commands[brew] )); then
+  alias brewc='brew cleanup -s'
+  alias brewu='brew upgrade'
+  alias cask='brew cask'
+fi
+
 # For piping rg to a pager
 function ripgrep_pager {
   rg --pretty $@ | $PAGER

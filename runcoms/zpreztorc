@@ -31,7 +31,6 @@ zstyle ':prezto:load' pmodule \
   'environment' \
   'terminal' \
   'git' \
-  'homebrew' \
   'editor' \
   'history' \
   'ruby' \
