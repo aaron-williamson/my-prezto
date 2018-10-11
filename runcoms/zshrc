@@ -5,7 +5,7 @@
 #   Sorin Ionescu <sorin.ionescu@gmail.com>
 #
 
-# Source Prezto. | ~50ms
+# Source Prezto. | ~63ms
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
@@ -158,7 +158,7 @@ if [[ -f "$HOME/.$HOST" ]]; then
   source "$HOME/.$HOST"
 fi
 
-# fzf setup | ~10ms
+# fzf setup | ~6ms
 if (( $+commands[fzf] )); then
   # Auto-completion if interactive shell
   [[ $- == *i* ]] && source "${FZF_PREFIX}/completion.zsh" 2> /dev/null

@@ -27,34 +27,30 @@ zstyle ':prezto:*:*' color 'yes'
 
 # Set the Prezto modules to load (browse modules).
 # The order matters.
-zstyle ':prezto:load' pmodule \
-  'environment' \
-  'terminal' \
-  'git' \
-  'editor' \
-  'history' \
-  'ruby' \
-  'directory' \
-  'spectrum' \
-  'utility' \
-  'completion' \
-  'prompt'
-#  'history-substring-search' \ Temporarily disabling this to see if I really need it
-#  Might not since I also use FZF which serves a similar purpose
+ zstyle ':prezto:load' pmodule \
+   'environment' \
+   'terminal' \
+   'git' \
+   'editor' \
+   'history' \
+   'ruby' \
+   'directory' \
+   'spectrum' \
+   'utility' \
+   'completion' \
+   'prompt'
 # Bench:
 #   Environment ~2ms
 #   Terminal ~2ms
 #   Git ~6ms
-#   Homebrew ~2ms
 #   Editor ~4ms
 #   History ~1ms
 #   Ruby ~7ms
 #   Directory ~0ms
 #   Spectrum ~2ms
 #   Utility ~2ms
-#   Completion ~50ms
-#   History-substring-search ~20ms
-#   Prompt ~15ms
+#   Completion ~10ms
+#   Prompt ~20ms
 
 #
 # Deer
