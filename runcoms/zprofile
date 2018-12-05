@@ -78,19 +78,23 @@ typeset -gU cdpath fpath mailpath path
 
 # Set the list of directories that Zsh searches for programs.
 path=(
+  # Always use user-defined programs before system-defined ones
+  $HOME/bin
+
   # Golang path
-  $HOME/go/bin:$PATH
+  $HOME/go/bin
 
   # For rustup
-  $HOME/.cargo/bin:$PATH
+  $HOME/.cargo/bin
 
   # For FZF
-  $HOME/.fzf/bin:$PATH
+  $HOME/.fzf/bin
 
-  # Always use user-defined programs before system-defined ones
-  $HOME/bin:$PATH
+  # For n - node version management
+  /usr/local/n/bin
 
   /usr/local/{bin,sbin}
+
   $path
 )
 
