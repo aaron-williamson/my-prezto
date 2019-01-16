@@ -45,12 +45,12 @@ else
   alias vi="vim"
 fi
 
-# System specific aliases
+# System specific configuration
 if [[ "$OSTYPE" == darwin* ]]; then
   alias la="ls -alhGF"
   alias ls="ls -lhFG"
 
-  # File specific aliases
+  # Copy public key easily
   if [[ -f "$HOME/.ssh/id_rsa.pub" ]]; then
     alias cpypub="cat $HOME/.ssh/id_rsa.pub | pbcopy"
   fi
@@ -63,6 +63,42 @@ if [[ "$OSTYPE" == darwin* ]]; then
     alias brewu='brew upgrade'
     alias cask='brew cask'
   fi
+
+  # List installed brew formulae and their dependencies
+  function brew_list_deps {
+    local formulae=$(brew list)
+
+    # Split the list of formulae by newline
+    for formula in ${(f)formulae}; do
+      echo -n "$FG[blue] $formula $FG[white]"
+      local formula_deps=$(brew deps "$formula")
+
+      # Split the formulae deps on newline then join them with spaces
+      echo "${(fj: :)formula_deps}"
+    done
+  }
+
+  # List brew formulae and what uses them
+  function brew_list_uses {
+    local formulae=$(brew list)
+
+    # Split the list of formulae by newline
+    for formula in ${(f)formulae}; do
+      echo -n "$FG[blue] $formula $FG[white]"
+      local formulae_uses=$(brew uses "$formula" --installed)
+
+      # Split the formulae uses on newline then join them with spaces
+      echo "${(fj: :)formulae_uses}"
+    done
+  }
+
+  # Check an app using codesign
+  function check_app {
+    local app="$@"
+
+    codesign --verify --verbose "$app"
+    codesign --display --verbose=3 "$app"
+  }
 elif [[ "$OSTYPE" == linux* ]]; then
   alias ls="ls -lhF --color=auto"
   alias la="ls -alhF --color=auto"
@@ -78,49 +114,12 @@ function git_root {
   fi
 }
 
-# List installed brew formulae and their dependencies
-function brew_list_deps {
-  local formulae=$(brew list)
-
-  # Split the list of formulae by newline
-  for formula in ${(f)formulae}; do
-    echo -n "$FG[blue] $formula $FG[white]"
-    local formula_deps=$(brew deps "$formula")
-
-    # Split the formulae deps on newline then join them with spaces
-    echo "${(fj: :)formula_deps}"
-  done
-}
-
-# List brew formulae and what uses them
-function brew_list_uses {
-  local formulae=$(brew list)
-
-  # Split the list of formulae by newline
-  for formula in ${(f)formulae}; do
-    echo -n "$FG[blue] $formula $FG[white]"
-    local formulae_uses=$(brew uses "$formula" --installed)
-
-    # Split the formulae uses on newline then join them with spaces
-    echo "${(fj: :)formulae_uses}"
-  done
-}
-
-# Check an app using codesign
-function check_app {
-  local app="$@"
-
-  codesign --verify --verbose "$app"
-  codesign --display --verbose=3 "$app"
-}
-
 # General aliases
 alias vimkh="vim $HOME/.ssh/known_hosts"
 alias vimt="vim -p"
 alias vimv="vim -O"
 alias vims="vim -o"
 alias vikh="vimkh"
-alias quit="exit"
 alias df="df -h"
 alias cdgr="git_root"
 alias psa='ps -Ao "pid ppid state %cpu %mem rss start etime command"'
@@ -150,8 +149,8 @@ function gi {
 }
 
 # Machine specific rc settings
-if [[ -f "$HOME/.$HOST" ]]; then
-  source "$HOME/.$HOST"
+if [[ -f "$HOME/.$HOST.zsh" ]]; then
+  source "$HOME/.$HOST.zsh"
 fi
 
 # fzf setup | ~6ms
