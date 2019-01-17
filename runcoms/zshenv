@@ -51,7 +51,7 @@ path=(
 )
 
 # Set the default Less options.
-export LESS='-F -g -i -M -S -w -X -z-4'
+export LESS='-F -g -i -R -M -S -w -X -z-4'
 
 # Set the Less input preprocessor.
 # Try both `lesspipe` and `lesspipe.sh` as either might exist on a system.
