@@ -1,11 +1,65 @@
-#
-# Defines environment variables.
-#
-# Authors:
-#   Sorin Ionescu <sorin.ionescu@gmail.com>
-#
+# vim: filetype=zsh
+# Define environment variables for every instance to use
 
-# Ensure that a non-login, non-interactive shell has a defined environment.
-if [[ ( "$SHLVL" -eq 1 && ! -o LOGIN ) && -s "${ZDOTDIR:-$HOME}/.zprofile" ]]; then
-  source "${ZDOTDIR:-$HOME}/.zprofile"
+# OS X Specifics
+if [[ "$OSTYPE" == darwin* ]]; then
+  export BROWSER='open'
+
+  # For Visual Studio Code
+  path+="/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+fi
+
+# Set editor's appropriately
+if (( $+commands[nvim] )); then
+  export EDITOR='nvim'
+  export VISUAL='nvim'
+
+  # Use neovim as man pager if we have it
+  export MANPAGER="nvim -c 'set ft=man' -"
+else
+  export EDITOR='vim'
+  export VISUAL='vim'
+fi
+
+export PAGER='less'
+
+# Language
+if [[ -z "$LANG" ]]; then
+  export LANG='en_US.UTF-8'
+fi
+
+# Ensure path arrays do not contain duplicates.
+typeset -gU cdpath fpath mailpath path
+
+# Set the path variable
+path=(
+  # Always use user-defined programs before system-defined ones
+  $HOME/bin
+
+  # Golang path
+  $HOME/go/bin
+
+  # Rust path
+  $HOME/.cargo/bin
+
+  # For FZF
+  $HOME/.fzf/bin
+
+  /usr/local/{bin,sbin}
+
+  $path
+)
+
+# Set the default Less options.
+export LESS='-F -g -i -M -S -w -X -z-4'
+
+# Set the Less input preprocessor.
+# Try both `lesspipe` and `lesspipe.sh` as either might exist on a system.
+if (( $#commands[(i)lesspipe(|.sh)] )); then
+  export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"
+fi
+
+# Secrets file
+if [[ -f "$HOME/.secrets" ]]; then
+  source "$HOME/.secrets"
 fi

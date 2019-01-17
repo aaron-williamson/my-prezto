@@ -1,9 +1,5 @@
-#
-# Executes commands at the start of an interactive session.
-#
-# Authors:
-#   Sorin Ionescu <sorin.ionescu@gmail.com>
-#
+# vim: filetype=zsh
+# My configuration for an interactive zsh session
 
 # Source Prezto. | ~63ms
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
@@ -36,6 +32,31 @@ bindkey -M visual "p" put-replace-selection
 
 # 10ms for key sequences - makes everything more responsive
 KEYTIMEOUT=1
+
+# Set up some rust variables for use with vim
+# Cache the result of rustc --print sysroot to speed up start time since
+# zlogin is sourced every time a new shell is opened (improvement by ~50ms)
+rust_sysroot_cache="$HOME/.rust_sysroot_cache"
+if (( $+commands[rustc] )); then
+  if [[ ! -f "$rust_sysroot_cache" ]]; then
+    rustc --print sysroot > "$rust_sysroot_cache"
+  fi
+
+  export RUST_SRC_PATH=$(cat "$rust_sysroot_cache")/lib/rustlib/src/rust/src
+fi
+
+if (( $+commands[racer] )); then
+  export RUST_RACER_PATH=$(which racer)
+fi
+
+# Detect FZF Prefix if it exists
+if [[ -d "$HOME/.fzf/shell" ]]; then
+  export FZF_PREFIX="$HOME/.fzf/shell"
+elif [[ -d "/usr/local/opt/fzf/shell" ]]; then
+  export FZF_PREFIX="/usr/local/opt/fzf/shell"
+elif [[ -d "/usr/share/fzf" ]]; then
+  export FZF_PREFIX="/usr/share/fzf"
+fi
 
 # Launch neovim/vim more easily
 if (( $+commands[nvim] )); then
@@ -104,14 +125,14 @@ elif [[ "$OSTYPE" == linux* ]]; then
   alias la="ls -alhF --color=auto"
 fi
 
-# Get back to git root directory easily
-function git_root {
-  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    cd "$(git rev-parse --show-toplevel)"
-  else
-    >&2 echo "Error, not inside a git repository"
-    false
-  fi
+# Alias for sudoedit where not available
+if (( $+commands[sudo] )) && ! (( $+commands[sudoedit] )); then
+  alias sudoedit='sudo -e'
+fi
+
+# Automatically ls after every cd
+function chpwd {
+  ls
 }
 
 # General aliases
@@ -121,26 +142,26 @@ alias vimv="vim -O"
 alias vims="vim -o"
 alias vikh="vimkh"
 alias df="df -h"
-alias cdgr="git_root"
 alias psa='ps -Ao "pid ppid state %cpu %mem rss start etime command"'
 alias gdiff="git diff --no-index"
 alias agp="ag --pager $PAGER"
 alias rg="rg --smart-case"
 alias rgp="ripgrep_pager"
 
-# Alias for sudoedit where not available
-if (( $+commands[sudo] )) && ! (( $+commands[sudoedit] )); then
-  alias sudoedit='sudo -e'
-fi
+# Get back to git root directory easily
+function git_root {
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    cd "$(git rev-parse --show-toplevel)"
+  else
+    >&2 echo "Error, not inside a git repository"
+    false
+  fi
+}
+alias cdgr="git_root"
 
 # For piping rg to a pager
 function ripgrep_pager {
   rg --pretty $@ | $PAGER
-}
-
-# Automatically ls after every cd
-function chpwd {
-  ls
 }
 
 # Function for gitignore.io
