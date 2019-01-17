@@ -2,31 +2,37 @@
 # A simple theme that displays relevant, contextual information.
 # Based on sorin prompt
 #
-# Non ascii characters used in this prompt:
+# Non ascii characters used in this prompt provided all together for testing:
 # Left prompt:
 # ❯❯❯
 # ❮❮❮
 # Right prompt (git status):
 # ▲ ▼ ★ ✚ ✖ ● ▶ ≠ ■
 #
-# base16 Terminal Colors
+# Terminal color reference with extra colors added by base16-shell:
 # -- ---------------
-#  0 Black (base 00, background)
+#  0 Black (Background)
 #  1 Red
 #  2 Green
 #  3 Yellow
 #  4 Blue
 #  5 Magenta
 #  6 Cyan
-#  7 White (base 05, foreground)
-#  8 Base 03
-#  9 Bright orange
-# 10 Base 01
-# 11 Base 02
-# 12 Base 04
-# 13 Base 06
-# 14 Dark orange
-# 15 Base 07
+#  7 White (Foreground)
+#  8 Bright Black
+#  9 Bright Red
+# 10 Bright Green
+# 11 Bright Yellow
+# 12 Bright Blue
+# 13 Bright Magenta
+# 14 Bright Cyan
+# 15 Bright White
+# 16 Base 09 (Extra colors provided by base16-shell)
+# 17 Base 0F
+# 18 Base 01
+# 19 Base 02
+# 20 Base 04
+# 21 Base 06
 
 # Load dependencies.
 pmodload 'helper'
@@ -163,7 +169,7 @@ function prompt_sauron_precmd {
   #
   # %* prints the current 24 hour time with seconds (useful for timing
   #   commands)
-  RPROMPT='${editor_info[overwrite]}%(?:: %B%K{1}%F{10} %? %f%k%b)%(1j: %B%F{5}[%j]%f%b:) %F{4}%*%f${VIM:+" %B%F{6}V%f%b"}'
+  RPROMPT='%B${editor_info[overwrite]}%b%(?:: %B%K{1}%F{0} %? %f%k%b)%(1j: %B%F{5}[%j]%f%b:) %F{4}%*%f${VIM:+" %B%F{6}V%f%b"}'
 
   # If async init hasn't already run
   (( !${prompt_sauron_async_init:-0} )) && {
@@ -233,7 +239,7 @@ function prompt_sauron_setup {
   # Set git-info parameters.
   zstyle ':prezto:module:git:info' verbose 'yes'
   # Main contexts
-  zstyle ':prezto:module:git:info:action' format '%F{7}:%f%%B%F{9}%s%f%%b'
+  zstyle ':prezto:module:git:info:action' format '%F{7}:%f%%B%F{16}%s%f%%b'
   zstyle ':prezto:module:git:info:ahead' format ' %%B%F{5}▲%f%%b'
   zstyle ':prezto:module:git:info:behind' format ' %%B%F{5}▼%f%%b'
   zstyle ':prezto:module:git:info:branch' format ' %%B%F{2}%b%f%%b'
@@ -251,8 +257,12 @@ function prompt_sauron_setup {
     'status' '$(coalesce "%b" "%p" "%c")%s%A%B%S%a%d%m%r%U%u'
 
   # Define prompts.
-  # TODO: document these next few lines
-  PROMPT='${SSH_TTY:+"%F{1}%n%f%F{7}@%f%F{9}%m%f "}%F{4}${_prompt_sauron_pwd}%(!. %B%F{1}#%f%b.)${editor_info[keymap]} '
+  # ${SSH_TTY:+"%F{1}%n%f%F{7}@%f%F{6}%m%f "} Defines extras to add to the prompt when SSH_TTY is defined
+  #   These extras are: %n@%m which expands to username@hostname
+  # ${_prompt_sauron_pwd} is the pwd as set earlier in this file
+  # %(!. %B%F{1}#%f%b.) displays a # when running with privileges
+  # ${editor_info[keymap]} displays information about the state of the ZSH editor (e.g. vim insert vs normal mode)
+  PROMPT='${SSH_TTY:+"%F{1}%n%f%F{7}@%f%F{16}%m%f "}%F{4}${_prompt_sauron_pwd}%(!. %B%F{1}#%f%b.)${editor_info[keymap]} '
   RPROMPT=''
   SPROMPT='zsh: correct %F{1}%R%f to %F{2}%r%f [nyae]? '
 }
