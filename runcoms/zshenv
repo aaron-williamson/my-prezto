@@ -1,65 +1,74 @@
 # vim: filetype=zsh
 # Define environment variables for every instance to use
 
-# OS X Specifics
-if [[ "$OSTYPE" == darwin* ]]; then
-  export BROWSER='open'
+# Uncomment the next two lines for profiling shell start time, also see zlogin
+# zmodload zsh/zprof
+# start=$(/usr/local/bin/gdate +%s%3N)
 
-  # For Visual Studio Code
-  path+="/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
-fi
+function my_zshenv {
+  # Ensure path arrays do not contain duplicates.
+  typeset -gU cdpath fpath mailpath path
 
-# Set editor's appropriately
-if (( $+commands[nvim] )); then
-  export EDITOR='nvim'
-  export VISUAL='nvim'
+  # Set the path variable
+  path=(
+    # Always use user-defined programs before system-defined ones
+    $HOME/bin
 
-  # Use neovim as man pager if we have it
-  export MANPAGER="nvim -c 'set ft=man' -"
-else
-  export EDITOR='vim'
-  export VISUAL='vim'
-fi
+    # Golang path
+    $HOME/go/bin
 
-export PAGER='less'
+    # Rust path
+    $HOME/.cargo/bin
 
-# Language
-if [[ -z "$LANG" ]]; then
-  export LANG='en_US.UTF-8'
-fi
+    # For FZF
+    $HOME/.fzf/bin
 
-# Ensure path arrays do not contain duplicates.
-typeset -gU cdpath fpath mailpath path
+    /usr/local/{bin,sbin}
 
-# Set the path variable
-path=(
-  # Always use user-defined programs before system-defined ones
-  $HOME/bin
+    $path
+  )
 
-  # Golang path
-  $HOME/go/bin
+  # OS X Specifics
+  if [[ "$OSTYPE" == darwin* ]]; then
+    export BROWSER='open'
 
-  # Rust path
-  $HOME/.cargo/bin
+    # For Visual Studio Code
+    path+="/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+  fi
 
-  # For FZF
-  $HOME/.fzf/bin
+  # Set editor's appropriately
+  if (( $+commands[nvim] )); then
+    export EDITOR='nvim'
+    export VISUAL='nvim'
 
-  /usr/local/{bin,sbin}
+    # Use neovim as man pager if we have it
+    export MANPAGER="nvim -c 'set ft=man' -"
+  else
+    export EDITOR='vim'
+    export VISUAL='vim'
+  fi
 
-  $path
-)
+  export PAGER='less'
 
-# Set the default Less options.
-export LESS='-F -g -i -R -M -S -w -X -z-4'
+  # Language
+  if [[ -z "$LANG" ]]; then
+    export LANG='en_US.UTF-8'
+  fi
 
-# Set the Less input preprocessor.
-# Try both `lesspipe` and `lesspipe.sh` as either might exist on a system.
-if (( $#commands[(i)lesspipe(|.sh)] )); then
-  export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"
-fi
+  # Set the default Less options.
+  export LESS='-F -g -i -R -M -S -w -X -z-4'
 
-# Secrets file
-if [[ -f "$HOME/.secrets" ]]; then
-  source "$HOME/.secrets"
-fi
+  # Set the Less input preprocessor.
+  # Try both `lesspipe` and `lesspipe.sh` as either might exist on a system.
+  if (( $#commands[(i)lesspipe(|.sh)] )); then
+    export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"
+  fi
+
+  # Secrets file
+  if [[ -f "$HOME/.secrets" ]]; then
+    source "$HOME/.secrets"
+  fi
+}
+
+my_zshenv
+unset -f my_zshenv

@@ -1,194 +1,212 @@
 # vim: filetype=zsh
 # My configuration for an interactive zsh session
-
-# Source Prezto. | ~63ms
-if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
-  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
-fi
-
-# My settings | ~2ms
-
-# Enable reverse and forward search
-bindkey "^R" history-incremental-pattern-search-backward
-bindkey "^F" history-incremental-pattern-search-forward
-
-# Allow various deletions after vi-mode
-bindkey "^?" backward-delete-char
-bindkey "^H" backward-delete-char
-bindkey "^W" backward-kill-word
-bindkey "^U" backward-kill-line
-
-# <C-p> and <C-n> for previous and next in command history
-bindkey "^P" up-history
-bindkey "^N" down-history
-
-# Extra vi mode bindings
-bindkey -M vicmd "gu" vi-down-case
-bindkey -M vicmd "gU" vi-up-case
-bindkey -M visual "u" vi-down-case
-bindkey -M visual "U" vi-up-case
-bindkey -M visual "y" vi-yank
-bindkey -M visual "p" put-replace-selection
-
-# 10ms for key sequences - makes everything more responsive
-KEYTIMEOUT=1
-
-# Set up some rust variables for use with vim
-# Cache the result of rustc --print sysroot to speed up start time since
-# zlogin is sourced every time a new shell is opened (improvement by ~50ms)
-rust_sysroot_cache="$HOME/.rust_sysroot_cache"
-if (( $+commands[rustc] )); then
-  if [[ ! -f "$rust_sysroot_cache" ]]; then
-    rustc --print sysroot > "$rust_sysroot_cache"
-  fi
-
-  export RUST_SRC_PATH=$(cat "$rust_sysroot_cache")/lib/rustlib/src/rust/src
-fi
-
-if (( $+commands[racer] )); then
-  export RUST_RACER_PATH=$(which racer)
-fi
-
-# Detect FZF Prefix if it exists
-if [[ -d "$HOME/.fzf/shell" ]]; then
-  export FZF_PREFIX="$HOME/.fzf/shell"
-elif [[ -d "/usr/local/opt/fzf/shell" ]]; then
-  export FZF_PREFIX="/usr/local/opt/fzf/shell"
-elif [[ -d "/usr/share/fzf" ]]; then
-  export FZF_PREFIX="/usr/share/fzf"
-fi
-
-# Launch neovim/vim more easily
-if (( $+commands[nvim] )); then
-  alias vim="nvim"
-  alias vi="nvim"
-else
-  alias vi="vim"
-fi
-
-# System specific configuration
-if [[ "$OSTYPE" == darwin* ]]; then
-  alias la="ls -alhGF"
-  alias ls="ls -lhFG"
-
-  # Copy public key easily
-  if [[ -f "$HOME/.ssh/id_rsa.pub" ]]; then
-    alias cpypub="cat $HOME/.ssh/id_rsa.pub | pbcopy"
-  fi
-
-  # Brew aliases
-  if (( $+commands[brew] )); then
-    alias brewld="brew_list_deps"
-    alias brewlu="brew_list_uses"
-    alias brewc='brew cleanup -s'
-    alias brewu='brew upgrade'
-    alias cask='brew cask'
-  fi
-
-  # List installed brew formulae and their dependencies
-  function brew_list_deps {
-    local formulae=$(brew list)
-
-    # Split the list of formulae by newline
-    for formula in ${(f)formulae}; do
-      echo -n "$FG[blue] $formula $FG[white]"
-      local formula_deps=$(brew deps "$formula")
-
-      # Split the formulae deps on newline then join them with spaces
-      echo "${(fj: :)formula_deps}"
-    done
+function my_zshrc {
+  function load_prezto {
+    NVM_LAZY_LOAD="true"
+    if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
+      source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+    fi
   }
+  load_prezto
 
-  # List brew formulae and what uses them
-  function brew_list_uses {
-    local formulae=$(brew list)
+  function keybinds {
+    # Enable reverse and forward search
+    bindkey "^R" history-incremental-pattern-search-backward
+    bindkey "^F" history-incremental-pattern-search-forward
 
-    # Split the list of formulae by newline
-    for formula in ${(f)formulae}; do
-      echo -n "$FG[blue] $formula $FG[white]"
-      local formulae_uses=$(brew uses "$formula" --installed)
+    # Allow various deletions after vi-mode
+    bindkey "^?" backward-delete-char
+    bindkey "^H" backward-delete-char
+    bindkey "^W" backward-kill-word
+    bindkey "^U" backward-kill-line
 
-      # Split the formulae uses on newline then join them with spaces
-      echo "${(fj: :)formulae_uses}"
-    done
+    # <C-p> and <C-n> for previous and next in command history
+    bindkey "^P" up-history
+    bindkey "^N" down-history
+
+    # Extra vi mode bindings
+    bindkey -M vicmd "gu" vi-down-case
+    bindkey -M vicmd "gU" vi-up-case
+    bindkey -M visual "u" vi-down-case
+    bindkey -M visual "U" vi-up-case
+    bindkey -M visual "y" vi-yank
+    bindkey -M visual "p" put-replace-selection
+
+    # 10ms for key sequences - makes everything more responsive
+    KEYTIMEOUT=1
   }
+  keybinds
 
-  # Check an app using codesign
-  function check_app {
-    local app="$@"
+  function aliases {
+    # Launch neovim/vim more easily
+    if (( $+commands[nvim] )); then
+      alias vim="nvim"
+      alias vi="nvim"
+    else
+      alias vi="vim"
+    fi
 
-    codesign --verify --verbose "$app"
-    codesign --display --verbose=3 "$app"
+    # System specific configuration
+    if [[ "$OSTYPE" == darwin* ]]; then
+      alias la="ls -alhGF"
+      alias ls="ls -lhFG"
+
+      # Copy public key easily
+      if [[ -f "$HOME/.ssh/id_rsa.pub" ]]; then
+        alias cpypub="cat $HOME/.ssh/id_rsa.pub | pbcopy"
+      fi
+
+      # Brew aliases
+      if (( $+commands[brew] )); then
+        alias brewld="brew_list_deps"
+        alias brewlu="brew_list_uses"
+        alias brewc='brew cleanup -s'
+        alias brewu='brew upgrade'
+        alias cask='brew cask'
+      fi
+
+      # List installed brew formulae and their dependencies
+      function brew_list_deps {
+        local formulae=$(brew list)
+
+        # Split the list of formulae by newline
+        for formula in ${(f)formulae}; do
+          echo -n "$FG[blue] $formula $FG[white]"
+          local formula_deps=$(brew deps "$formula")
+
+          # Split the formulae deps on newline then join them with spaces
+          echo "${(fj: :)formula_deps}"
+        done
+      }
+
+      # List brew formulae and what uses them
+      function brew_list_uses {
+        local formulae=$(brew list)
+
+        # Split the list of formulae by newline
+        for formula in ${(f)formulae}; do
+          echo -n "$FG[blue] $formula $FG[white]"
+          local formulae_uses=$(brew uses "$formula" --installed)
+
+          # Split the formulae uses on newline then join them with spaces
+          echo "${(fj: :)formulae_uses}"
+        done
+      }
+
+      # Check an app using codesign
+      function check_app {
+        local app="$@"
+
+        codesign --verify --verbose "$app"
+        codesign --display --verbose=3 "$app"
+      }
+    elif [[ "$OSTYPE" == linux* ]]; then
+      alias ls="ls -lhF --color=auto"
+      alias la="ls -alhF --color=auto"
+    fi
+
+    # Alias for sudoedit where not available
+    if (( $+commands[sudo] )) && ! (( $+commands[sudoedit] )); then
+      alias sudoedit='sudo -e'
+    fi
+
+    # General aliases
+    alias vimkh="vim $HOME/.ssh/known_hosts"
+    alias vimt="vim -p"
+    alias vimv="vim -O"
+    alias vims="vim -o"
+    alias vikh="vimkh"
+    alias df="df -h"
+    alias psa='ps -Ao "pid ppid state %cpu %mem rss start etime command"'
+    alias gdiff="git diff --no-index"
+    alias agp="ag --pager $PAGER"
+    alias rg="rg --smart-case"
   }
-elif [[ "$OSTYPE" == linux* ]]; then
-  alias ls="ls -lhF --color=auto"
-  alias la="ls -alhF --color=auto"
-fi
+  aliases
 
-# Alias for sudoedit where not available
-if (( $+commands[sudo] )) && ! (( $+commands[sudoedit] )); then
-  alias sudoedit='sudo -e'
-fi
+  function utility_functions {
+    # Get back to git root directory easily
+    function git_root {
+      if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        cd "$(git rev-parse --show-toplevel)"
+      else
+        >&2 echo "Error, not inside a git repository"
+        false
+      fi
+    }
+    alias cdgr="git_root"
 
-# Automatically ls after every cd
+    # For piping rg to a pager
+    function ripgrep_pager {
+      rg --pretty $@ | $PAGER
+    }
+    alias rgp="ripgrep_pager"
+
+    # Function for gitignore.io
+    function gitignore_io {
+      curl -L -s "https://www.gitignore.io/api/$@"
+    }
+    alias gi="gitignore_io"
+  }
+  utility_functions
+
+  function machine_specific_config {
+    # Machine specific rc settings
+    if [[ -f "$HOME/.$HOST.zsh" ]]; then
+      source "$HOME/.$HOST.zsh"
+    fi
+  }
+  machine_specific_config
+
+  function fzf_setup {
+    # Detect FZF Prefix if it exists
+    if [[ -d "$HOME/.fzf/shell" ]]; then
+      export FZF_PREFIX="$HOME/.fzf/shell"
+    elif [[ -d "/usr/local/opt/fzf/shell" ]]; then
+      export FZF_PREFIX="/usr/local/opt/fzf/shell"
+    elif [[ -d "/usr/share/fzf" ]]; then
+      export FZF_PREFIX="/usr/share/fzf"
+    fi
+
+    if (( $+commands[fzf] )); then
+      # Auto-completion if interactive shell
+      [[ $- == *i* ]] && source "${FZF_PREFIX}/completion.zsh" 2> /dev/null
+
+      # Key bindings
+      source "${FZF_PREFIX}/key-bindings.zsh"
+
+      # Ctrl-Y for change directory
+      bindkey '^Y' fzf-cd-widget
+
+      # Use ripgrep or the silver searcher to list files if available
+      if (( $+commands[rg] )); then
+        export FZF_DEFAULT_COMMAND='rg --files --hidden --glob !".git/"'
+      elif (( $+commands[ag] )); then
+        export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
+      fi
+    fi
+  }
+  fzf_setup
+
+  function n_setup {
+    export N_PREFIX="$HOME/n";
+    path+="$N_PREFIX/bin"
+  }
+  n_setup
+
+  unset -f load_prezto
+  unset -f keybinds
+  unset -f aliases
+  unset -f utility_functions
+  unset -f machine_specific_config
+  unset -f fzf_setup
+  unset -f n_setup
+}
+
+my_zshrc
+unset -f my_zshrc
+
+# This has to be outside of the my_zshrc function or the ls alias doesn't work properly
 function chpwd {
   ls
 }
-
-# General aliases
-alias vimkh="vim $HOME/.ssh/known_hosts"
-alias vimt="vim -p"
-alias vimv="vim -O"
-alias vims="vim -o"
-alias vikh="vimkh"
-alias df="df -h"
-alias psa='ps -Ao "pid ppid state %cpu %mem rss start etime command"'
-alias gdiff="git diff --no-index"
-alias agp="ag --pager $PAGER"
-alias rg="rg --smart-case"
-alias rgp="ripgrep_pager"
-
-# Get back to git root directory easily
-function git_root {
-  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    cd "$(git rev-parse --show-toplevel)"
-  else
-    >&2 echo "Error, not inside a git repository"
-    false
-  fi
-}
-alias cdgr="git_root"
-
-# For piping rg to a pager
-function ripgrep_pager {
-  rg --pretty $@ | $PAGER
-}
-
-# Function for gitignore.io
-function gi {
-  curl -L -s "https://www.gitignore.io/api/$@"
-}
-
-# Machine specific rc settings
-if [[ -f "$HOME/.$HOST.zsh" ]]; then
-  source "$HOME/.$HOST.zsh"
-fi
-
-# fzf setup | ~6ms
-if (( $+commands[fzf] )); then
-  # Auto-completion if interactive shell
-  [[ $- == *i* ]] && source "${FZF_PREFIX}/completion.zsh" 2> /dev/null
-
-  # Key bindings
-  source "${FZF_PREFIX}/key-bindings.zsh"
-
-  # Ctrl-Y for change directory
-  bindkey '^Y' fzf-cd-widget
-
-  # Use ripgrep or the silver searcher to list files if available
-  if (( $+commands[rg] )); then
-    export FZF_DEFAULT_COMMAND='rg --files --hidden --glob !".git/"'
-  elif (( $+commands[ag] )); then
-    export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
-  fi
-fi

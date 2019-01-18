@@ -13,3 +13,8 @@
     zcompile "$zcompdump"
   fi
 } &!
+
+# Uncomment the next three lines for profiling shell start time, also see zshenv
+# finish=$(/usr/local/bin/gdate +%s%3N)
+# echo "*** DEBUG *** total time: $((finish - start))"
+# zprof

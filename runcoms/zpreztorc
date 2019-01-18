@@ -1,40 +1,39 @@
 # vim: filetype=zsh
 # My prezto configuration
 
-# Color output whenever possible
-zstyle ':prezto:*:*' color 'yes'
+function my_preztorc {
+   # Color output whenever possible
+   zstyle ':prezto:*:*' color 'yes'
 
-# My prezto modules, the order matters.
- zstyle ':prezto:load' pmodule \
-   'environment' \
-   'terminal' \
-   'git' \
-   'editor' \
-   'history' \
-   'ruby' \
-   'directory' \
-   'spectrum' \
-   'utility' \
-   'completion' \
-   'prompt'
-# Bench:
-#   Environment ~2ms
-#   Terminal ~2ms
-#   Git ~6ms
-#   Editor ~4ms
-#   History ~1ms
-#   Ruby ~7ms
-#   Directory ~0ms
-#   Spectrum ~2ms
-#   Utility ~2ms
-#   Completion ~10ms
-#   Prompt ~20ms
+   # My prezto modules, the order matters.
+   zstyle ':prezto:load' pmodule \
+     'environment' \
+     'terminal' \
+     'git' \
+     'editor' \
+     'history' \
+     'ruby' \
+     'directory' \
+     'spectrum' \
+     'utility' \
+     'completion' \
+     'prompt'
 
-# Use vi-style keybindings
-zstyle ':prezto:module:editor' key-bindings 'vi'
+   # Use vi-style keybindings
+   zstyle ':prezto:module:editor' key-bindings 'vi'
 
-# Use my custom sauron theme
-zstyle ':prezto:module:prompt' theme 'sauron'
+   # Use my custom sauron theme
+   zstyle ':prezto:module:prompt' theme 'sauron'
 
-# Don't prompt before deleting or overwriting files with cp, ln, mv, and rm
-zstyle ':prezto:module:utility' safe-ops 'no'
+   # Don't prompt before deleting or overwriting files with cp, ln, mv, and rm
+   zstyle ':prezto:module:utility' safe-ops 'no'
+
+   # Auto set tab titles
+   zstyle ':prezto:module:terminal' auto-title 'yes'
+
+   # Skip git aliases
+   zstyle ':prezto:module:git:alias' skip 'yes'
+}
+
+my_preztorc
+unset -f my_preztorc
