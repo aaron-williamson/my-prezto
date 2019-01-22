@@ -193,6 +193,29 @@ function my_zshrc {
   }
   n_setup
 
+  function sdkman_setup {
+    # Lazy load sdkman, but add variables to path
+    export SDKMAN_DIR="/Users/aaron/.sdkman"
+    local candidates=("$SDKMAN_DIR"/candidates/*/current)
+    for candidate in $candidates; do
+      local bin_dir="$candidate/bin"
+      if [[ -h "$bin_dir" || -d "$bin_dir" ]]; then
+        path=($bin_dir $path)
+      else
+        path=($candidate $path)
+      fi
+    done
+
+    function sdk {
+      if [[ -s "/Users/aaron/.sdkman/bin/sdkman-init.sh" ]]; then
+        source "/Users/aaron/.sdkman/bin/sdkman-init.sh"
+      fi
+
+      sdk "$@"
+    }
+  }
+  sdkman_setup
+
   unset -f load_prezto
   unset -f keybinds
   unset -f aliases
@@ -200,6 +223,7 @@ function my_zshrc {
   unset -f machine_specific_config
   unset -f fzf_setup
   unset -f n_setup
+  unset -f sdkman_setup
 }
 
 my_zshrc
