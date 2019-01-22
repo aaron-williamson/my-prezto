@@ -2,7 +2,6 @@
 # My configuration for an interactive zsh session
 function my_zshrc {
   function load_prezto {
-    NVM_LAZY_LOAD="true"
     if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
       source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
     fi
