@@ -223,6 +223,14 @@ function my_zshrc {
   }
   sdkman_setup
 
+  function base16_shell_setup {
+    base16_theme="$HOME/.config/base16-shell/scripts/base16-summerfruit-dark.sh"
+    if [[ -s "$base16_theme" ]]; then
+      source "$base16_theme"
+    fi
+  }
+  base16_shell_setup
+
   unset -f load_prezto
   unset -f keybinds
   unset -f aliases
@@ -231,6 +239,7 @@ function my_zshrc {
   unset -f fzf_setup
   unset -f n_setup
   unset -f sdkman_setup
+  unset -f base16_shell_setup
 }
 
 my_zshrc
