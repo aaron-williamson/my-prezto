@@ -167,22 +167,24 @@ function my_zshrc {
       export FZF_PREFIX="/usr/share/fzf"
     fi
 
-    if (( $+commands[fzf] )); then
-      # Auto-completion if interactive shell
-      [[ $- == *i* ]] && source "${FZF_PREFIX}/completion.zsh" 2> /dev/null
+    if ! (( $+commands[fzf] )); then
+      return
+    fi
 
-      # Key bindings
-      source "${FZF_PREFIX}/key-bindings.zsh"
+    # Auto-completion if interactive shell
+    [[ $- == *i* ]] && source "${FZF_PREFIX}/completion.zsh" 2> /dev/null
 
-      # Ctrl-Y for change directory
-      bindkey '^Y' fzf-cd-widget
+    # Key bindings
+    source "${FZF_PREFIX}/key-bindings.zsh"
 
-      # Use ripgrep or the silver searcher to list files if available
-      if (( $+commands[rg] )); then
-        export FZF_DEFAULT_COMMAND='rg --files --hidden --glob !".git/"'
-      elif (( $+commands[ag] )); then
-        export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
-      fi
+    # Ctrl-Y for change directory
+    bindkey '^Y' fzf-cd-widget
+
+    # Use ripgrep or the silver searcher to list files if available
+    if (( $+commands[rg] )); then
+      export FZF_DEFAULT_COMMAND='rg --files --hidden --glob !".git/"'
+    elif (( $+commands[ag] )); then
+      export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
     fi
   }
   fzf_setup
@@ -196,6 +198,11 @@ function my_zshrc {
   function sdkman_setup {
     # Lazy load sdkman, but add variables to path
     export SDKMAN_DIR="/Users/aaron/.sdkman"
+
+    if [[ ! -d "$SDKMAN_DIR" && ! -h "$SDKMAN_DIR" ]]; then
+      return
+    fi
+
     local candidates=("$SDKMAN_DIR"/candidates/*/current)
     for candidate in $candidates; do
       local bin_dir="$candidate/bin"
