@@ -23,6 +23,9 @@ function my_zshenv {
     # For FZF
     $HOME/.fzf/bin
 
+    # For poetry
+    $HOME/.poetry/bin
+
     /usr/local/{bin,sbin}
 
     $path

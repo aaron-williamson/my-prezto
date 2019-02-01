@@ -1,6 +1,11 @@
 # vim: filetype=zsh
 # My configuration for an interactive zsh session
 function my_zshrc {
+  function func_path {
+    fpath+="$HOME/.zfunc"
+  }
+  func_path
+
   function load_prezto {
     if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
       source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
@@ -203,6 +208,7 @@ function my_zshrc {
   }
   base16_shell_setup
 
+  unset -f func_path
   unset -f load_prezto
   unset -f keybinds
   unset -f aliases
