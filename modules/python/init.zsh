@@ -14,12 +14,30 @@ elif [[ -s "$HOME/.pyenv/bin/pyenv" ]]; then
   path=("$HOME/.pyenv/bin" $path)
 fi
 
+# Cache pyenv init
+cached_pyenv_file="${TMPDIR:-/tmp}/cached_pyenv_command_$UID"
+function cached_pyenv {
+  if ! [[ -s "$cached_pyenv_file" ]]; then
+    cat > "$cached_pyenv_file" <<PYENVROOT
+if [[ -z "\$PYENV_ROOT" ]]; then
+  export PYENV_ROOT="$(pyenv root)"
+fi
+PYENVROOT
+    pyenv init - --no-rehash zsh >> "$cached_pyenv_file"
+  fi
+
+  source "$cached_pyenv_file"
+}
+
 # Load pyenv into the current python session
 if (( $+commands[pyenv] )); then
-  if [[ -z "$PYENV_ROOT" ]]; then
-    export PYENV_ROOT=$(pyenv root)
-  fi
-  eval "$(pyenv init - --no-rehash zsh)"
+  # Commented out in favor of my cached code
+  # if [[ -z "$PYENV_ROOT" ]]; then
+  #   export PYENV_ROOT=$(pyenv root)
+  # fi
+  #
+  # eval "$(pyenv init - --no-rehash zsh)"
+  cached_pyenv
 
 # Prepend PEP 370 per user site packages directory, which defaults to
 # ~/Library/Python on macOS and ~/.local elsewhere, to PATH. The
