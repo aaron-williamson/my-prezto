@@ -103,7 +103,7 @@ function prompt_sauron_async_git {
   # Get Git repository information.
   if (( $+functions[git-info] )); then
     git-info
-    echo "${git_info[status]}"
+    print "${git_info[status]}"
   fi
 }
 
@@ -119,7 +119,7 @@ function prompt_sauron_async_touchbar {
     return 1
   fi
 
-  echo "$branch"
+  print "$branch"
 }
 
 function prompt_sauron_async_callback {
@@ -128,19 +128,37 @@ function prompt_sauron_async_callback {
   # $3 = job stdout
   # $4 = job exeuction time
   # $5 = job stderr
+  local job="$1" code="$2" output="$3"
 
   # If the async job was successful
-  if [[ $2 -eq 0 ]]; then
-    if [[ "$1" == "prompt_sauron_async_git" ]]; then
-      # Add git info to the right-hand prompt
-      RPROMPT+="$3"
+  if [[ "$code" -eq 0 ]]; then
+    case "$job" in
+      prompt_sauron_async_git)
+        # Split on ':' since it isn't allowed in ref names
+        IFS=':' read _git_target _git_post_target <<<"$output"
 
-      # Redisplay prompt
-      zle && zle reset-prompt
-    elif [[ "$1" == "prompt_sauron_async_touchbar" ]]; then
-      touchbar_status="$touchbar_status 🎋 $3"
-      it2setkeylabel set status "$touchbar_status"
-    fi
+        # Only grab the first of 3 space-separated possibilities
+        # The (@) flag splits the arguments and quotes them
+        # The (z) flag splits on words
+        _git_target="$(coalesce "${(@)${(z)_git_target}}")"
+
+        if [[ -z "$_git_target" ]]; then
+          # No git target detected, clear the git portion of the prompt
+          if [[ -n "$_prompt_sauron_git" ]]; then
+            _prompt_sauron_git=''
+            zle && zle reset-prompt
+          fi
+        else
+          # Git target detected, update the git portion of the prompt
+          _prompt_sauron_git="${_git_target}${_git_post_target}"
+          zle && zle reset-prompt
+        fi
+        ;;
+      prompt_sauron_async_touchbar)
+        touchbar_status="$touchbar_status 🎋 $output"
+        it2setkeylabel set status "$touchbar_status"
+        ;;
+    esac
   fi
 }
 
@@ -151,25 +169,20 @@ function prompt_sauron_precmd {
   # Format PWD.
   prompt_sauron_pwd
 
-  # Define prompts.
+  # Handle updating git data, as per Sorin prompt. Clear the git prompt data
+  # if we're in a different git root now.
+  if (( $+functions[git-dir] )); then
+    local new_git_root="$(git-dir 2>/dev/null)"
+    if [[ "$new_git_root" != "$_sauron_cur_git_root" ]]; then
+      _prompt_sauron_git=''
+      _sauron_cur_git_root="$new_git_root"
+    fi
+  fi
 
-  # editor_info[overwrite] is whether prompt input is in replace mode
-  #
-  # %(?::...) is a ternary operator based on the last command's exit code
-  #   it prints nothing if it was successful, otherwise prints the last
-  #   commands exit code, formatted to look more error-like
-  #
-  # VIM is for when the prompt is running from within vim (for example inside
-  #   a neovim terminal emulator). ${VIM:+"..."} simply means if VIM is not
-  #   null then substitute "..."
-  #
-  # %(1j:...:) is also a ternary operator, but it's based on the number of
-  #   background jobs. It will print the number of jobs if it's greater than
-  #   or equal to one.
-  #
-  # %* prints the current 24 hour time with seconds (useful for timing
-  #   commands)
-  RPROMPT='%B${editor_info[overwrite]}%b%(?:: %B%K{1}%F{0} %? %f%k%b)%(1j: %B%F{5}[%j]%f%b:) %F{4}%*%f${VIM:+" %B%F{6}V%f%b"}'
+  # Get python info, should be fast enough to not need async
+  if (( $+functions[python-info] )); then
+    python-info
+  fi
 
   # If async init hasn't already run
   (( !${prompt_sauron_async_init:-0} )) && {
@@ -181,7 +194,8 @@ function prompt_sauron_precmd {
     async_register_callback "prompt_sauron" prompt_sauron_async_callback
 
     # We've completed async setup
-    prompt_sauron_async_init=1
+    # typeset -g for global variable
+    typeset -g prompt_sauron_async_init=1
   }
 
   # Flush any currently running async jobs
@@ -233,7 +247,7 @@ function prompt_sauron_setup {
   # Set editor-info parameters.
   zstyle ':prezto:module:editor:info:completing' format '%B%F{7}...%f%b'
   zstyle ':prezto:module:editor:info:keymap:primary' format ' %B%F{1}❯%F{3}❯%F{2}❯%f%b'
-  zstyle ':prezto:module:editor:info:keymap:primary:overwrite' format ' %F{1}REPLACE%f'
+  zstyle ':prezto:module:editor:info:keymap:primary:overwrite' format '%F{1}REPLACE%f '
   zstyle ':prezto:module:editor:info:keymap:alternate' format ' %B%F{2}❮%F{3}❮%F{1}❮%f%b'
 
   # Set git-info parameters.
@@ -254,7 +268,14 @@ function prompt_sauron_setup {
   zstyle ':prezto:module:git:info:unmerged' format ' %%B%F{3}≠%f%%b'
   zstyle ':prezto:module:git:info:untracked' format ' %%B%F{7}■%f%%b'
   zstyle ':prezto:module:git:info:keys' format \
-    'status' '$(coalesce "%b" "%p" "%c")%s%A%B%S%a%d%m%r%U%u'
+    'status' '%b %p %c:%s%A%B%S%a%d%m%r%U%u '
+  # Python-info parameters
+  zstyle ':prezto:module:python:info:virtualenv' format '%F{6}(%v)%f '
+
+  # Clean up prompt variables
+  _sauron_cur_git_root=''
+  _prompt_sauron_git=''
+  _prompt_sauron_pwd=''
 
   # Define prompts.
   # ${SSH_TTY:+"%F{1}%n%f%F{7}@%f%F{6}%m%f "} Defines extras to add to the prompt when SSH_TTY is defined
@@ -262,8 +283,34 @@ function prompt_sauron_setup {
   # ${_prompt_sauron_pwd} is the pwd as set earlier in this file
   # %(!. %B%F{1}#%f%b.) displays a # when running with privileges
   # ${editor_info[keymap]} displays information about the state of the ZSH editor (e.g. vim insert vs normal mode)
-  PROMPT='${SSH_TTY:+"%F{1}%n%f%F{7}@%f%F{16}%m%f "}%F{4}${_prompt_sauron_pwd}%(!. %B%F{1}#%f%b.)${editor_info[keymap]} '
-  RPROMPT=''
+  PROMPT='${SSH_TTY:+"%F{1}%n%f%F{7}@%f%F{16}%m%f "}'
+  PROMPT+='%F{4}${_prompt_sauron_pwd}%(!. %B%F{1}#%f%b.)'
+  PROMPT+='${editor_info[keymap]} '
+
+  # editor_info[overwrite] is whether prompt input is in replace mode
+  #
+  # %(?::...) is a ternary operator based on the last command's exit code
+  #   it prints nothing if it was successful, otherwise prints the last
+  #   commands exit code, formatted to look more error-like
+  #
+  # VIM is for when the prompt is running from within vim (for example inside
+  #   a neovim terminal emulator). ${VIM:+"..."} simply means if VIM is not
+  #   null then substitute "..."
+  #
+  # %(1j:...:) is also a ternary operator, but it's based on the number of
+  #   background jobs. It will print the number of jobs if it's greater than
+  #   or equal to one.
+  #
+  # %* prints the current 24 hour time with seconds (useful for timing
+  #   commands)
+  RPROMPT='%B${editor_info[overwrite]}%b' # Editor info
+  RPROMPT+='$python_info[virtualenv]' # Python venv
+  RPROMPT+='%(?::%B%K{1}%F{0} %? %f%k%b )' # Return code
+  RPROMPT+='%(1j:%B%F{5}[%j]%f%b :)' # Job count
+  RPROMPT+='${VIM:+"%B%F{6}V%f%b "}' # If prompt is in vime mode
+  RPROMPT+='${_prompt_sauron_git}' # Git info
+  RPROMPT+='%F{4}%*%f' # Current time
+
   SPROMPT='zsh: correct %F{1}%R%f to %F{2}%r%f [nyae]? '
 }
 
