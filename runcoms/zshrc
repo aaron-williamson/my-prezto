@@ -207,6 +207,12 @@ function my_zshrc {
 
   function base16_shell_setup {
     base16_theme="$HOME/.config/base16-shell/scripts/base16-summerfruit-dark.sh"
+
+    # Don't use base16 shell if not using a high level term
+    if [[ "$TERM" == (dumb|linux|*bsd*|eterm*) ]]; then
+      return
+    fi
+
     if [[ -s "$base16_theme" ]]; then
       source "$base16_theme"
     fi
