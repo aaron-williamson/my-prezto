@@ -147,7 +147,7 @@ function my_zshrc {
 
     # For piping rg to a pager
     function ripgrep_pager {
-      rg --pretty $@ | $PAGER
+      rg --smart-case --pretty $@ | $PAGER
     }
     alias rgp="ripgrep_pager"
 
