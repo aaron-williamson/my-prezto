@@ -241,6 +241,9 @@ function prompt_sauron_setup {
   # Add hook for calling git-info before each command.
   add-zsh-hook precmd prompt_sauron_precmd
 
+  # Tell prezto to manage this prompt
+  zstyle ':prezto:module:prompt' managed 'yes'
+
   # Add hook for recalculating the pwd when we change directory
   add-zsh-hook chpwd prompt_sauron_pwd
 
