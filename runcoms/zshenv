@@ -41,14 +41,14 @@ function my_zshenv {
       /usr/local/opt/sqlite/bin
 
       # Visual Studio Code
-      /Applications/Visual Studio Code.app/Contents/Resources/app/bin
+      "/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
 
       $path
     )
 
     # Workaround for path_helper
     typeset -gaU good_path
-    good_path=(${path[*]})
+    good_path=("${path[@]}")
   fi
 
   # Set editor's appropriately

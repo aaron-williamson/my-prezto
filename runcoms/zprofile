@@ -4,7 +4,7 @@ function my_zprofile {
   # macOS Specifics
   if [[ "$OSTYPE" == darwin* ]]; then
     # Workaround for path_helper
-    path=(${good_path[*]} ${path[*]})
+    path=("${good_path[@]}" "${path[@]}")
   fi
 }
 
