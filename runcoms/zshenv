@@ -31,12 +31,24 @@ function my_zshenv {
     $path
   )
 
-  # OS X Specifics
+  # macOS Specifics
   if [[ "$OSTYPE" == darwin* ]]; then
     export BROWSER='open'
 
-    # For Visual Studio Code
-    path+="/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+    # Paths
+    path=(
+      # Put brew sqlite3 before system sqlite3 on macos
+      /usr/local/opt/sqlite/bin
+
+      # Visual Studio Code
+      /Applications/Visual Studio Code.app/Contents/Resources/app/bin
+
+      $path
+    )
+
+    # Workaround for path_helper
+    typeset -gaU good_path
+    good_path=(${path[*]})
   fi
 
   # Set editor's appropriately

@@ -1,0 +1,12 @@
+# vim: filetype=zsh
+
+function my_zprofile {
+  # macOS Specifics
+  if [[ "$OSTYPE" == darwin* ]]; then
+    # Workaround for path_helper
+    path=(${good_path[*]} ${path[*]})
+  fi
+}
+
+my_zprofile
+unset -f my_zprofile
