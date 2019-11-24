@@ -7,13 +7,6 @@
 #   Patrick Bos <egpbos@gmail.com>
 #
 
-# Load manually installed pyenv into the path
-if [[ -n "$PYENV_ROOT" && -s "$PYENV_ROOT/bin/pyenv" ]]; then
-  path=("$PYENV_ROOT/bin" $path)
-elif [[ -s "$HOME/.pyenv/bin/pyenv" ]]; then
-  path=("$HOME/.pyenv/bin" $path)
-fi
-
 # Cache pyenv init
 cached_pyenv_file="${TMPDIR:-/tmp}/cached_pyenv_command_$UID"
 function cached_pyenv {
@@ -29,13 +22,14 @@ PYENVROOT
   source "$cached_pyenv_file"
 }
 
+# Load manually installed pyenv into the path
+if [[ -s "${PYENV_ROOT:=$HOME/.pyenv}/bin/pyenv" ]]; then
+  path=("${PYENV_ROOT}/bin" $path)
+  eval "$(pyenv init - --no-rehash zsh)"
+
 # Load pyenv into the current python session
-if (( $+commands[pyenv] )); then
+elif (( $+commands[pyenv] )); then
   # Commented out in favor of my cached code
-  # if [[ -z "$PYENV_ROOT" ]]; then
-  #   export PYENV_ROOT=$(pyenv root)
-  # fi
-  #
   # eval "$(pyenv init - --no-rehash zsh)"
   cached_pyenv
 

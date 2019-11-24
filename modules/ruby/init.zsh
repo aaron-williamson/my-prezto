@@ -26,8 +26,8 @@ if [[ -s "$HOME/.rvm/scripts/rvm" ]]; then
   source "$HOME/.rvm/scripts/rvm"
 
 # Load manually installed rbenv into the shell session.
-elif [[ -s "$HOME/.rbenv/bin/rbenv" ]]; then
-  path=("$HOME/.rbenv/bin" $path)
+elif [[ -s "${RBENV_ROOT:=$HOME/.rbenv}/bin/rbenv" ]]; then
+  path=("${RBENV_ROOT}/bin" $path)
   cached_rbenv
 
 # Load package manager installed rbenv into the shell session.
