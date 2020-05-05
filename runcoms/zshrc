@@ -201,7 +201,7 @@ function my_zshrc {
 
   function n_setup {
     export N_PREFIX="$HOME/n";
-    path+="$N_PREFIX/bin"
+    path=("$N_PREFIX/bin" $path)
   }
   n_setup
 
