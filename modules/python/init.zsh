@@ -7,6 +7,9 @@
 #   Patrick Bos <egpbos@gmail.com>
 #
 
+# Load dependencies
+pmodload 'helper'
+
 # Cache pyenv init
 cached_pyenv_file="${TMPDIR:-/tmp}/cached_pyenv_command_$UID"
 function cached_pyenv {
@@ -39,7 +42,7 @@ elif (( $+commands[pyenv] )); then
 else
   if [[ -n "$PYTHONUSERBASE" ]]; then
     path=($PYTHONUSERBASE/bin $path)
-  elif [[ "$OSTYPE" == darwin* ]]; then
+  elif is-darwin; then
     path=($HOME/Library/Python/*/bin(N) $path)
   else
     # This is subject to change.
