@@ -37,63 +37,53 @@
 # Load dependencies.
 pmodload 'helper'
 
-function prompt_sauron_pwd {
-  # This is a function to truncate the current directory
-  # eg $HOME/Documents/some/dir becomes ~/D/s/dir
-  # Explanation:
-  #
-  # First we have '${PWD/#$HOME/~}'
-  #   This takes PWD and replaces $HOME (eg /Users/person) with ~
-  #
-  # Next we have the first branch of the if statement:
-  #   if [[ "$pwd" == (#m)[/~] ]]; then
-  #     _prompt_sauron_pwd="$MATCH"
-  #     unset MATCH
-  #   else
-  #   The two significant parts of this are '(#m)' and '[/~]', the first
-  #   is a flag that says to set the MATCH variable to the result of the
-  #   following glob. The second is just a glob that checks if pwd is either
-  #   '~' or '/'. If this is true _prompt_sauron_pwd gets set to the
-  #   value of MATCH, that is either `~` or '/'.
-  #
-  # The second branch of the if statement is a lot of parameter expansion
-  #   The first large chunk '${${${${(@j:/:M)${(@s:/:)pwd}##.#?}:h}%/}//\%/%%}'
-  #   is rather complex, I'll explain from the inside out:
-  #   - The innermost is '${(@s:/:)pwd}, this force splits pwd on '/' rather
-  #     than treating it as a single word (both @ and s:/: split, I think @
-  #     is redundant here, but it makes sure to split array elements so maybe
-  #     that does something)
-  #   - Next is '${(@j:/:M)${(@s:/:)pwd}##.#?}', @ ensures array elements are
-  #     separate words, j:/: joins words using the character '/', the M flag
-  #     inverts the following match, which is: ##. matches a . at the start
-  #     of each argument (this is for hidden directories .dotfiles for ex),
-  #     and since we use ##, it prefers the longest match, which is then
-  #     followed by #?, to match any one character, this makes it so we match
-  #     the first character of any string, and the first two of any string
-  #     that starts with '.'. The other part of # is that it removes whatever
-  #     it matches, but M reverses that so we delete everything that isn't
-  #     matched. This is the primary magic of this function.
-  #   - The last two groups here are ${:h} and ${%/}. 'h' just removes the
-  #     file name from the end, acting like 'dirname', and '%/' matches and
-  #     removes the '/' character from the end of the string if it exists
-  #   - All of this together results in something like: ~/D/s (if given the
-  #     pwd of ~/Documents/some/dir)
-  #   Last towards the end of the string we have '/${${pwd:t}//\%/%%}', this just
-  #   appends / and the last dir to the previous string:
-  #     / is just a character /
-  #     ${pwd:t} is the tail of ${pwd}, so so in the above example
-  #       it gets just 'dir' from '$HOME/Documents/some/dir'
-  #   At the end of both of these statements we have //\%/%%, all this does
-  #   is escape any '%'s inside the string, replacing them with %%'s so that
-  #   the prompt renders them properly, since % is a valid filename char.
-  local pwd="${PWD/#$HOME/~}"
+function prompt_sauron_async_callback {
+  # $1 = job name
+  # $2 = job return code
+  # $3 = job stdout
+  # $4 = job exeuction time
+  # $5 = job stderr
+  local job="$1" code="$2" output="$3"
 
-  if [[ "$pwd" == (#m)[/~] ]]; then
-    _prompt_sauron_pwd="$MATCH"
-    unset MATCH
-  else
-    _prompt_sauron_pwd="${${${${(@j:/:M)${(@s:/:)pwd}##.#?}:h}%/}//\%/%%}/${${pwd:t}//\%/%%}"
-  fi
+  case "$job" in
+    prompt_sauron_async_git)
+      # Exit early if the job was not successful
+      if [[ "$code" -ne 0 ]]; then
+        return
+      fi
+
+      # Split on ':' since it isn't allowed in ref names
+      IFS=':' read _git_target _git_post_target <<<"$output"
+
+      # Only grab the first of 3 space-separated possibilities
+      # The (@) flag splits the arguments and quotes them
+      # The (z) flag splits on words
+      _git_target="$(coalesce "${(@)${(z)_git_target}}")"
+
+      if [[ -z "$_git_target" ]]; then
+        # No git target detected, clear the git portion of the prompt
+        if [[ -n "$_prompt_sauron_git" ]]; then
+          _prompt_sauron_git=''
+          zle && zle reset-prompt
+        fi
+      else
+        # Git target detected, update the git portion of the prompt
+        _prompt_sauron_git="${_git_target}${_git_post_target}"
+        zle && zle reset-prompt
+      fi
+      ;;
+    prompt_sauron_async_touchbar)
+      touchbar_status="$touchbar_status 🎋 $output"
+      it2setkeylabel set status "$touchbar_status"
+      ;;
+    "[async]")
+      # Code is 1 for corrupted worker output and 2 for dead worker.
+      if [[ "$code" -eq 2 ]]; then
+        # The worker died unexpectedly
+        typeset -g prompt_sauron_async_init=0
+      fi
+      ;;
+  esac
 }
 
 function prompt_sauron_async_git {
@@ -122,68 +112,7 @@ function prompt_sauron_async_touchbar {
   print "$branch"
 }
 
-function prompt_sauron_async_callback {
-  # $1 = job name
-  # $2 = job return code
-  # $3 = job stdout
-  # $4 = job exeuction time
-  # $5 = job stderr
-  local job="$1" code="$2" output="$3"
-
-  # If the async job was successful
-  if [[ "$code" -eq 0 ]]; then
-    case "$job" in
-      prompt_sauron_async_git)
-        # Split on ':' since it isn't allowed in ref names
-        IFS=':' read _git_target _git_post_target <<<"$output"
-
-        # Only grab the first of 3 space-separated possibilities
-        # The (@) flag splits the arguments and quotes them
-        # The (z) flag splits on words
-        _git_target="$(coalesce "${(@)${(z)_git_target}}")"
-
-        if [[ -z "$_git_target" ]]; then
-          # No git target detected, clear the git portion of the prompt
-          if [[ -n "$_prompt_sauron_git" ]]; then
-            _prompt_sauron_git=''
-            zle && zle reset-prompt
-          fi
-        else
-          # Git target detected, update the git portion of the prompt
-          _prompt_sauron_git="${_git_target}${_git_post_target}"
-          zle && zle reset-prompt
-        fi
-        ;;
-      prompt_sauron_async_touchbar)
-        touchbar_status="$touchbar_status 🎋 $output"
-        it2setkeylabel set status "$touchbar_status"
-        ;;
-    esac
-  fi
-}
-
-function prompt_sauron_precmd {
-  setopt local_options
-  unsetopt xtrace ksh_arrays
-
-  # Format PWD.
-  prompt_sauron_pwd
-
-  # Handle updating git data, as per Sorin prompt. Clear the git prompt data
-  # if we're in a different git root now.
-  if (( $+functions[git-dir] )); then
-    local new_git_root="$(git-dir 2>/dev/null)"
-    if [[ "$new_git_root" != "$_sauron_cur_git_root" ]]; then
-      _prompt_sauron_git=''
-      _sauron_cur_git_root="$new_git_root"
-    fi
-  fi
-
-  # Get python info, should be fast enough to not need async
-  if (( $+functions[python-info] )); then
-    python-info
-  fi
-
+function prompt_sauron_async_tasks {
   # If async init hasn't already run
   (( !${prompt_sauron_async_init:-0} )) && {
     # Create "prompt_sauron" worker
@@ -215,6 +144,31 @@ function prompt_sauron_precmd {
   fi
 }
 
+function prompt_sauron_precmd {
+  setopt local_options
+  unsetopt xtrace ksh_arrays
+
+  # Format PWD.
+  _prompt_sauron_pwd="$(prompt-pwd)"
+
+  # Handle updating git data, as per Sorin prompt. Clear the git prompt data
+  # if we're in a different git root now.
+  if (( $+functions[git-dir] )); then
+    local new_git_root="$(git-dir 2>/dev/null)"
+    if [[ "$new_git_root" != "$_sauron_cur_git_root" ]]; then
+      _prompt_sauron_git=''
+      _sauron_cur_git_root="$new_git_root"
+    fi
+  fi
+
+  # Get python info, should be fast enough to not need async
+  if (( $+functions[python-info] )); then
+    python-info
+  fi
+
+  prompt_sauron_async_tasks
+}
+
 function prompt_sauron_setup {
   # When we return, restore ZSH options to what they were before
   setopt local_options
@@ -244,9 +198,6 @@ function prompt_sauron_setup {
   # Tell prezto to manage this prompt
   zstyle ':prezto:module:prompt' managed 'yes'
 
-  # Add hook for recalculating the pwd when we change directory
-  add-zsh-hook chpwd prompt_sauron_pwd
-
   # Set editor-info parameters.
   zstyle ':prezto:module:editor:info:completing' format '%B%F{7}...%f%b'
   zstyle ':prezto:module:editor:info:keymap:primary' format ' %B%F{1}❯%F{3}❯%F{2}❯%f%b'
@@ -272,6 +223,7 @@ function prompt_sauron_setup {
   zstyle ':prezto:module:git:info:untracked' format ' %%B%F{7}■%f%%b'
   zstyle ':prezto:module:git:info:keys' format \
     'status' '%b %p %c:%s%A%B%S%a%d%m%r%U%u '
+
   # Python-info parameters
   zstyle ':prezto:module:python:info:virtualenv' format '%F{6}(%v)%f '
 
@@ -310,7 +262,7 @@ function prompt_sauron_setup {
   RPROMPT+='$python_info[virtualenv]' # Python venv
   RPROMPT+='%(?::%B%K{1}%F{0} %? %f%k%b )' # Return code
   RPROMPT+='%(1j:%B%F{5}[%j]%f%b :)' # Job count
-  RPROMPT+='${VIM:+"%B%F{6}V%f%b "}' # If prompt is in vime mode
+  RPROMPT+='${VIM:+"%B%F{6}V%f%b "}' # If prompt is in vim mode
   RPROMPT+='${_prompt_sauron_git}' # Git info
   RPROMPT+='%F{4}%*%f' # Current time
 
