@@ -14,6 +14,9 @@ function my_zshenv {
     # Always use user-defined programs before system-defined ones
     $HOME/bin
 
+    # Mac ports
+    /opt/local/bin
+
     # Golang path
     $HOME/go/bin
 

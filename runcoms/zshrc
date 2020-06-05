@@ -1,17 +1,15 @@
 # vim: filetype=zsh
 # My configuration for an interactive zsh session
 function my_zshrc {
-  function func_path {
-    fpath+="$HOME/.zfunc"
-  }
-  func_path
-
   function load_prezto {
     if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
       source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
     fi
   }
-  load_prezto
+
+  function func_path {
+    fpath=("$HOME/.zfunc" $fpath)
+  }
 
   function keybinds {
     # Enable reverse and forward search
@@ -39,7 +37,6 @@ function my_zshrc {
     # 10ms for key sequences - makes everything more responsive
     KEYTIMEOUT=1
   }
-  keybinds
 
   function aliases {
     # Launch neovim/vim more easily
@@ -131,7 +128,6 @@ function my_zshrc {
     alias agp="ag --pager $PAGER"
     alias rg="rg --smart-case"
   }
-  aliases
 
   function utility_functions {
     # Get back to git root directory easily
@@ -157,7 +153,6 @@ function my_zshrc {
     }
     alias gi="gitignore_io"
   }
-  utility_functions
 
   function machine_specific_config {
     # Machine specific rc settings
@@ -165,27 +160,34 @@ function my_zshrc {
       source "$HOME/.$HOST.zsh"
     fi
   }
-  machine_specific_config
 
   function fzf_setup {
     # Detect FZF Prefix if it exists
     if [[ -d "$HOME/.fzf/shell" ]]; then
-      export FZF_PREFIX="$HOME/.fzf/shell"
+      local fzf_prefix="$HOME/.fzf/shell"
     elif [[ -d "/usr/local/opt/fzf/shell" ]]; then
-      export FZF_PREFIX="/usr/local/opt/fzf/shell"
+      local fzf_prefix="/usr/local/opt/fzf/shell"
+    elif [[ -d "/opt/local/share/fzf/shell" ]]; then
+      local fzf_prefix="/opt/local/share/fzf/shell"
     elif [[ -d "/usr/share/fzf" ]]; then
-      export FZF_PREFIX="/usr/share/fzf"
+      local fzf_prefix="/usr/share/fzf"
     fi
 
-    if ! (( $+commands[fzf] )); then
+    if ! (( $+commands[fzf] )) || [[ -z "$fzf_prefix" ]]; then
       return
     fi
 
     # Auto-completion if interactive shell
-    [[ $- == *i* ]] && source "${FZF_PREFIX}/completion.zsh" 2> /dev/null
+    if [[ $- == *i* ]]; then
+      if [[ -e "${fzf_prefix}/completion.zsh" ]]; then
+        source "${fzf_prefix}/completion.zsh" 2> /dev/null
+      elif [[ -e "/opt/local/share/zsh/site-functions/fzf" ]]; then
+        source "/opt/local/share/zsh/site-functions/fzf"
+      fi
+    fi
 
     # Key bindings
-    source "${FZF_PREFIX}/key-bindings.zsh"
+    source "${fzf_prefix}/key-bindings.zsh"
 
     # Ctrl-Y for change directory
     bindkey '^Y' fzf-cd-widget
@@ -197,13 +199,11 @@ function my_zshrc {
       export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
     fi
   }
-  fzf_setup
 
   function n_setup {
     export N_PREFIX="$HOME/n";
     path=("$N_PREFIX/bin" $path)
   }
-  n_setup
 
   function base16_shell_setup {
     base16_theme="$HOME/.config/base16-shell/scripts/base16-summerfruit-dark.sh"
@@ -217,6 +217,15 @@ function my_zshrc {
       source "$base16_theme"
     fi
   }
+
+  load_prezto
+  func_path
+  keybinds
+  aliases
+  utility_functions
+  machine_specific_config
+  fzf_setup
+  n_setup
   base16_shell_setup
 
   unset -f func_path
