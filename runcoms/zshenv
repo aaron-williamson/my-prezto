@@ -16,6 +16,7 @@ function my_zshenv {
 
     # Mac ports
     /opt/local/bin
+    /opt/local/sbin
 
     # Golang path
     $HOME/go/bin
